@@ -1,6 +1,0 @@
-# Major Project
-
-## Project Files
--
--
--
