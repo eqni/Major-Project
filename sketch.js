@@ -15,13 +15,7 @@
 // Arrows filter through the different weeds.
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-// Classes
-class Plant {
-  constructor(state, growth) {
-    this.state = state;
-    this.growth = growth;
-  }
-}
+
 // Variables
 const GRID_SIZE = 50;
 
@@ -34,22 +28,17 @@ let maps = {
 let state = {
   identity: "normal",
   size: [1.5, 1.5],
-  direction: 0,
   stage: 0,
   plant: 0,
-  cost: 100,
-  gain: 250,
   growth: [[[136, 82, 127], [159, 135, 175], [188, 231, 253], [169, 237, 190], [80, 132, 132]], [[54, 60, 60], [65, 193, 241], [52, 110, 129], [152, 251, 152], [27, 131, 102]], [[54, 60, 60], [71, 125, 139], [60, 155, 162], [105, 162, 151], [48, 105, 100]]],
 };
 
 let cellSize;
-let xOffset = 0;
-let yOffset = 0;
-let x;
-let y;
+let xOffset;
+let yOffset;
 let font;
-let money = 100;
-let yield = [[100, 250], [500, 1000], [2000, 5000]];
+let market = [[100, 250], [500, 1000], [2000, 5000]];
+let player;
 
 // Loads Font
 function preload() {
@@ -62,22 +51,16 @@ function setup() {
   background(0);
   resizeScale();
   textFont(font);
-
-  x = GRID_SIZE / 2;
-  y = GRID_SIZE / 2;
   cellSize = min(windowHeight, windowWidth) / GRID_SIZE;
   maps.lobbyMap = genMap();
   maps.data = genData();
+  player = new Player(GRID_SIZE / 2, GRID_SIZE / 2, 100);
 }
 
 // Centers the grid
 function resizeScale() {
-  if (windowHeight >= windowWidth) {
-    yOffset = (windowHeight - windowWidth) / 2;
-  }
-  else if (windowHeight <= windowWidth) {
-    xOffset = (windowWidth - windowHeight) / 2;
-  }
+  yOffset = constrain((windowHeight - windowWidth) / 2, 0, windowHeight);
+  xOffset = constrain((windowWidth - windowHeight) / 2, 0, windowWidth);
 }
 
 function mousePressed() {
@@ -86,19 +69,16 @@ function mousePressed() {
   let py = floor((mouseY - yOffset) / cellSize);
 
   // Plants and collects weeds
-  if (maps.data[px][py][1] === 4) {
-    money += maps.data[px][py][2];
+  if (maps.data[px][py].growth === 4) {
+    player.wallet += market[maps.data[px][py].state - 2][1];
     maps.data[px][py] = 1; 
     maps.lobbyMap[px][py] = color(random(220, 230));
   }
   else {
-    if (maps.data[px][py] === 1 && py > 0 && py < 34 && money >= yield[state.plant][0]) {
+    if (maps.data[px][py] === 1 && py > 0 && py < 34 && player.wallet >= market[state.plant][0]) {
       maps.data[px][py] = new Plant(state.plant + 2, 0);
       maps.lobbyMap[px][py] = color(state.growth[state.plant][0]);
-      money -= yield[state.plant][0];
-        maps.data[px][py] = [3, 0, 1000];
-        money -= 500;
-        maps.data[px][py] = [4, 0, 5000];
+      player.wallet -= market[state.plant][0];
     }
   }
 }
@@ -108,8 +88,8 @@ function keyPressed() {
   if (keyCode === 32) {
     for (let x = 0; x < GRID_SIZE; x++) {
       for (let y = 0; y < 34; y++) {
-        if(maps.data[x][y][1] === 4) {
-          money += maps.data[x][y][2];
+        if (maps.data[x][y].growth === 4) {
+          player.wallet += market[maps.data[x][y].state - 2][1];
           maps.data[x][y] = 1;
           maps.lobbyMap[x][y] = color(random(220, 230));
         }
@@ -127,23 +107,14 @@ function keyPressed() {
   state.plant = state.plant % 3;
 }
 
-// Wall checks the player and its state
-function gateCheck() {
-  if(y < 33 && x > 22 && x < 28) {
-    state.identity = "normal";
-  }
-  if(y > 33 && x > 22 && x < 28) {
-    state.identity = "truck";
-  } 
-}
-
 // Simulates the game
 function draw() {
   noStroke();
   drawMap(GRID_SIZE, GRID_SIZE);
-  drawPlayer();
   drawPlants();
   drawUI();
+  player.update();
+  player.display();
 }
 
 // Loads the map
@@ -156,50 +127,14 @@ function drawMap() {
   }
 }
 
-// Draws the player
-function drawPlayer() {
-  fill(0);
-  // Movement
-  if (keyIsDown(68)) {
-    x++;
-  }
-  else if (keyIsDown(65)) {
-    x--;
-  }
-  else if (keyIsDown(83)) {
-    y++;
-    state.direction = 0;
-  }
-  else if (keyIsDown(87)) {
-    y--;
-    state.direction = 1;
-  }
-  gateCheck();
-
-  // State
-  if (state.identity === "normal") {
-    x = constrain(x, 1, 49);
-    y = constrain(y, 2, 33);
-    state.size = [1.5, 1.5];
-    rect((x - state.size[0] / 2) * cellSize + xOffset, (y - state.size[1] / 2) * cellSize + yOffset, cellSize * state.size[0], cellSize * state.size[1]);
-  }
-  else if (state.identity === "truck") {
-    x = constrain(x, 24, 27);
-    y = constrain(y, 33, 50);
-    state.size = [1.5, 4.5];
-    rect((x - state.size[0] / 2) * cellSize + xOffset, y * cellSize + yOffset, cellSize * state.size[0], cellSize * state.size[1]);
-  }
-}
-
 // Simulates plant growth
 function drawPlants() {
   for (let x = 0; x < GRID_SIZE; x++) {
     for (let y = 0; y < GRID_SIZE; y++) {
-      if (maps.data[x][y][0] > 1 && random() < 0.05) {
-        if (maps.data[x][y][1] < 4) {
-          maps.data[x][y][1] += 1;
-        }
-        maps.lobbyMap[x][y] = color(state.growth[maps.data[x][y][0] - 2][maps.data[x][y][1]]);
+      if (maps.data[x][y].state > 1 && random() < 0.05) {
+        let currentPlant = maps.data[x][y];
+        currentPlant.update();
+        maps.lobbyMap[x][y] = color(state.growth[maps.data[x][y].state - 2][maps.data[x][y].growth]);
       }
     }
   }
@@ -278,8 +213,8 @@ function drawUI() {
     innerFill = color(184, 184, 255);
     borderFill = color(147, 129, 255);
     char = "C";
-    name = "Cafe CannaSib";
-    desc = "How come the cafeteria food is so bad, but they never stop eating it?";
+    name = "Coffee Beans";
+    desc = "The stuff adults drink like water.";
   }
 
   // Washroom WheDe
@@ -308,7 +243,7 @@ function drawUI() {
   rect(0, 0, 250, 100);
   stroke(234, 173, 11);
   fill(255, 255, 167);
-  rect(4, 4, 29 * money.toString().length + 15, cellSize / 2 + 46);
+  rect(4, 4, 29 * player.wallet.toString().length + 15, cellSize / 2 + 46);
 
   // State Box
   stroke(borderFill);
@@ -322,7 +257,7 @@ function drawUI() {
   noStroke();
   textSize(32);
   fill(234, 173, 11);
-  text(money, 12, 2 * cellSize + 9);
+  text(player.wallet, 12, 2 * cellSize + 9);
 
   // State + Description
   textSize(44);
@@ -339,4 +274,67 @@ function drawUI() {
   textSize(44);
   text(char, 18, cellSize / 2 + 107);
 
+}
+
+// Classes
+class Plant {
+  constructor(state, growth) {
+    this.state = state;
+    this.growth = growth;
+  }
+
+  update() {
+    if (this.growth < 4) {
+      this.growth++;
+    }
+  }
+}
+
+class Player {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    this.wallet = 100;
+  }
+
+  update() {
+    // Movement
+    if (keyIsDown(68)) {
+      this.x++;
+    }
+    else if (keyIsDown(65)) {
+      this.x--;
+    }
+    else if (keyIsDown(83)) {
+      this.y++;
+      state.direction = 0;
+    }
+    else if (keyIsDown(87)) {
+      this.y--;
+      state.direction = 1;
+    }
+
+    if(player.y < 33 && player.x > 22 && player.x < 28) {
+      state.identity = "normal";
+    }
+    if(player.y > 33 && player.x > 22 && player.x < 28) {
+      state.identity = "truck";
+    }   
+  }
+
+  display() {
+    fill(0);
+    if (state.identity === "normal") {
+      this.x = constrain(player.x, 1, 49);
+      this.y = constrain(player.y, 2, 33);
+      state.size = [1.5, 1.5];
+      rect((this.x - state.size[0] / 2) * cellSize + xOffset, (this.y - state.size[1] / 2) * cellSize + yOffset, cellSize * state.size[0], cellSize * state.size[1]);
+    }
+    else if (state.identity === "truck") {
+      this.x = constrain(player.x, 24, 27);
+      this.y = constrain(player.y, 33, 50);
+      state.size = [1.5, 4.5];
+      rect((this.x - state.size[0] / 2) * cellSize + xOffset, this.y * cellSize + yOffset, cellSize * state.size[0], cellSize * state.size[1]);
+    }
+  }
 }
