@@ -2,8 +2,7 @@
 
 ## Description
 
-Weed Growing Game. The player grows weed in their warehouse. Sells weed to customers. Then improves their stock to grow more weed. 
-Inspired by Weed Shop 3: https://store.steampowered.com/app/1182110/Weed_Shop_3/
+Greenhouse Simulator. The player grows plants in their greenhouse. Sells plants to customers. Then improves their stock to grow more plants. 
 
 ### Needs to have List
 
@@ -12,8 +11,8 @@ Inspired by Weed Shop 3: https://store.steampowered.com/app/1182110/Weed_Shop_3/
 - Money Counter
 - Plant State Description
 - Controllable Character 
-- Warehouse Level [Where you grow weed]
-- Shop Level [Where you sell weed]
+- Greenhouse Level [Where you grow plants]
+- Shop Level [Where you sell plants]
 - Sound Effects
 - Background Music
 
