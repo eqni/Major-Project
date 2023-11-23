@@ -39,6 +39,7 @@ let yOffset;
 let font;
 let market = [[100, 250], [500, 1000], [2000, 5000]];
 let player;
+let playerImage;
 
 // Loads Font
 function preload() {
@@ -47,6 +48,7 @@ function preload() {
 
 // Builds Map, Sets up Text Scale
 function setup() {
+  imageMode(CENTER);
   createCanvas(windowWidth, windowHeight);
   background(0);
   resizeScale();
@@ -154,7 +156,7 @@ function genMap() {
       newMap[x][y] = color(random(110, 130), random(40, 50), random(25, 40));
 
       // lobbyMap
-      if (y < 34 && y > 0) {
+      if (y < 34) {
         newMap[x][y] = color(random(220, 230));
       }
       else if (y < 35) {
@@ -223,8 +225,8 @@ function drawUI() {
     innerFill = color(142, 168, 195);
     borderFill = color(35, 57, 91);
     char = "W";
-    name = "Washroom WheDe";
-    desc = "What's so good about the washroom that they gotta go every period?";
+    name = "Watermelon";
+    desc = "The stuff everyone drink like water ... in summer.";
   }
 
   // Hallway HerIon
@@ -233,8 +235,8 @@ function drawUI() {
     innerFill = color(105, 162, 151);
     borderFill = color(54, 60, 60);
     char = "H";
-    name = "Hallway HerIon";
-    desc = "There are rooms everywhere, why do they always stand in the halls?";
+    name = "Herbs";
+    desc = "Always in demand.";
   }
 
   // Money Box
@@ -243,7 +245,7 @@ function drawUI() {
   rect(0, 0, 250, 100);
   stroke(234, 173, 11);
   fill(255, 255, 167);
-  rect(4, 4, 29 * player.wallet.toString().length + 15, cellSize / 2 + 46);
+  rect(4, 4, xOffset - 8, cellSize / 2 + 46);
 
   // State Box
   stroke(borderFill);
@@ -256,8 +258,11 @@ function drawUI() {
   // Money
   noStroke();
   textSize(32);
+  fill(169, 152, 15);
+  text(player.wallet, 13, 2 * cellSize + 10);
   fill(234, 173, 11);
-  text(player.wallet, 12, 2 * cellSize + 9);
+  text(player.wallet, 12, 2 * cellSize + 8);
+
 
   // State + Description
   textSize(44);
@@ -323,12 +328,14 @@ class Player {
   }
 
   display() {
-    fill(0);
+    fill(255);
     if (state.identity === "normal") {
       this.x = constrain(player.x, 1, 49);
-      this.y = constrain(player.y, 2, 33);
+      this.y = constrain(player.y, 1, 33);
       state.size = [1.5, 1.5];
       rect((this.x - state.size[0] / 2) * cellSize + xOffset, (this.y - state.size[1] / 2) * cellSize + yOffset, cellSize * state.size[0], cellSize * state.size[1]);
+      fill(0);
+      rect((this.x - state.size[0] / 2) * cellSize + xOffset + 4, (this.y - state.size[1] / 2) * cellSize + yOffset + 4, cellSize * state.size[0] - 8, cellSize * state.size[1] - 8);
     }
     else if (state.identity === "truck") {
       this.x = constrain(player.x, 24, 27);
