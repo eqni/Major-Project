@@ -17,7 +17,7 @@
 
 
 // Variables
-const GRID_SIZE = 50;
+const GRID_SIZE = 64;
 
 let maps = {
   lobbyMap: [],
@@ -77,7 +77,7 @@ function mousePressed() {
     maps.lobbyMap[px][py] = color(random(220, 230));
   }
   else {
-    if (maps.data[px][py] === 1 && py > 0 && py < 34 && player.wallet >= market[state.plant][0]) {
+    if (maps.data[px][py] === 1 && py < 34 && player.wallet >= market[state.plant][0]) {
       maps.data[px][py] = new Plant(state.plant + 2, 0);
       maps.lobbyMap[px][py] = color(state.growth[state.plant][0]);
       player.wallet -= market[state.plant][0];
@@ -202,18 +202,20 @@ function genData() {
 
 // Loads an icon representing the current state
 function drawUI() {
-  let borderFill;
-  let outerFill;
-  let innerFill;
+  let boxStroke;
+  let boxFill;
+  let textStroke;
+  let textFill;
   let char;
   let name;
   let desc;
 
   // Cafeteria CannaSib
   if (state.plant % 3 === 0) {
-    outerFill = color(180, 237, 210);
-    innerFill = color(184, 184, 255);
-    borderFill = color(147, 129, 255);
+    boxStroke = color(72, 42, 29);
+    boxFill = color(220, 170, 112);
+    textStroke = color(255, 235, 205);
+    textFill = color(127, 90, 59);
     char = "C";
     name = "Coffee Beans";
     desc = "The stuff adults drink like water.";
@@ -221,9 +223,9 @@ function drawUI() {
 
   // Washroom WheDe
   else if (state.plant % 3 === 1) {
-    outerFill = color(64, 110, 142);
-    innerFill = color(142, 168, 195);
-    borderFill = color(35, 57, 91);
+    boxFill = color(64, 110, 142);
+    textFill = color(142, 168, 195);
+    boxStroke = color(35, 57, 91);
     char = "W";
     name = "Watermelon";
     desc = "The stuff everyone drink like water ... in summer.";
@@ -231,54 +233,56 @@ function drawUI() {
 
   // Hallway HerIon
   else if (state.plant % 3 === 2) {
-    outerFill = color(48, 105, 100);
-    innerFill = color(105, 162, 151);
-    borderFill = color(54, 60, 60);
+    boxFill = color(48, 105, 100);
+    textFill = color(105, 162, 151);
+    boxStroke = color(54, 60, 60);
     char = "H";
     name = "Herbs";
     desc = "Always in demand.";
   }
 
   // Money Box
-  strokeWeight(8);
-  fill(0);
-  rect(0, 0, 250, 100);
-  stroke(234, 173, 11);
-  fill(255, 255, 167);
-  rect(4, 4, xOffset - 8, cellSize / 2 + 46);
+  strokeWeight(cellSize);
+  stroke(8, 79, 9);
+  fill(62, 156, 39);
+  rect(0.5 * cellSize, 0.5 * cellSize, xOffset - cellSize, 5 * cellSize);
 
-  // State Box
-  stroke(borderFill);
-  fill(outerFill);
-  rect(4, cellSize / 2 + 58, cellSize / 2 + 56, cellSize / 2 + 56);
-  rect(xOffset - 4, cellSize / 2 + 58, -xOffset + 72, cellSize / 2 + 56);
-  rect(4, cellSize / 2 + 122, xOffset - 8, 196);
-  fill(63, 112, 117);
-   
-  // Money
+  // Plant Box
+  stroke(boxStroke);
+  fill(boxFill);
+  rect(0.5 * cellSize, 6.5 * cellSize, 5 * cellSize, 5 * cellSize);
+  rect(5.5 * cellSize, 6.5 * cellSize, xOffset - 6 * cellSize, 5 * cellSize);
+  rect(0.5 * cellSize, 11.5 * cellSize, xOffset - cellSize, 20 * cellSize);
+
+  // Money Text
   noStroke();
-  textSize(32);
-  fill(169, 152, 15);
-  text(player.wallet, 13, 2 * cellSize + 10);
-  fill(234, 173, 11);
-  text(player.wallet, 12, 2 * cellSize + 8);
+  textSize(3 * cellSize);
+  fill(22, 129, 44);
+  text(player.wallet, 1.75 * cellSize + 2, 4 * cellSize + 2);
+  fill(87, 196, 120);
+  text(player.wallet, 1.75 * cellSize, 4 * cellSize);
+
+  // Plant Text
+  textSize(3.75 * cellSize);
+  fill(textStroke);
+  text(char, 1.5 * cellSize + 2, 10.5 * cellSize + 2);
+  fill(textFill);
+  text(char, 1.5 * cellSize, 10.5 * cellSize);
+
+  textSize(2.75 * cellSize);
+  fill(textStroke);
+  text(name, 6.5 * cellSize + 2, 10 * cellSize + 2);
+  fill(textFill);
+  text(name, 6.5 * cellSize, 10 * cellSize);
 
 
-  // State + Description
-  textSize(44);
-  text(char, 18, cellSize / 2 + 106);
-  textSize(26);
-  text(name, 78, cellSize / 2 + 100, xOffset);
 
-  textSize(24);
-  text(desc, 14, cellSize / 2 + 150, 475, xOffset);
-  fill(innerFill);
-  text(desc, 16, cellSize / 2 + 150, 475, xOffset);
-  textSize(26);
-  text(name, 76, cellSize / 2 + 100, xOffset);
-  textSize(44);
-  text(char, 18, cellSize / 2 + 107);
-
+  // textSize(24);
+  // text(desc, 14, cellSize / 2 + 150, 475, xOffset);
+  // fill(textFill);
+  // text(desc, 16, cellSize / 2 + 150, 475, xOffset);
+  // textSize(26);
+  // text(name, 76, cellSize / 2 + 100, xOffset);
 }
 
 // Classes
@@ -312,11 +316,9 @@ class Player {
     }
     else if (keyIsDown(83)) {
       this.y++;
-      state.direction = 0;
     }
     else if (keyIsDown(87)) {
       this.y--;
-      state.direction = 1;
     }
 
     if(player.y < 33 && player.x > 22 && player.x < 28) {
@@ -328,18 +330,18 @@ class Player {
   }
 
   display() {
-    fill(255);
+    fill(0);
     if (state.identity === "normal") {
-      this.x = constrain(player.x, 1, 49);
+      this.x = constrain(player.x, 1, 63);
       this.y = constrain(player.y, 1, 33);
       state.size = [1.5, 1.5];
       rect((this.x - state.size[0] / 2) * cellSize + xOffset, (this.y - state.size[1] / 2) * cellSize + yOffset, cellSize * state.size[0], cellSize * state.size[1]);
-      fill(0);
+      fill(255);
       rect((this.x - state.size[0] / 2) * cellSize + xOffset + 4, (this.y - state.size[1] / 2) * cellSize + yOffset + 4, cellSize * state.size[0] - 8, cellSize * state.size[1] - 8);
     }
     else if (state.identity === "truck") {
       this.x = constrain(player.x, 24, 27);
-      this.y = constrain(player.y, 33, 50);
+      this.y = constrain(player.y, 33, 64);
       state.size = [1.5, 4.5];
       rect((this.x - state.size[0] / 2) * cellSize + xOffset, this.y * cellSize + yOffset, cellSize * state.size[0], cellSize * state.size[1]);
     }
