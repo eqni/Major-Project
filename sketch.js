@@ -5,9 +5,9 @@
 //
 // Extra for Experts:
 // - loaded fonts
-// - 3D Arrayssaaaa
+// - 3D Arrays
 ///////////////////////////////////////////////////////////////////////////////////////////
-// Game: You are a unique gardener who grows and sells weeds.
+// Game: You are a gardener who grows and sells weeds.
 //
 // Instructions: WASD to move character. (it doesn't do anything at the moment)
 // Moving out of the warehouse turns the player into truck mode, which elongates the character.
@@ -26,11 +26,8 @@ let maps = {
 };
 
 let state = {
-  identity: "normal",
   size: [1.5, 1.5],
-  stage: 0,
   plant: 0,
-  growth: [[[136, 82, 127], [159, 135, 175], [188, 231, 253], [169, 237, 190], [80, 132, 132]], [[54, 60, 60], [65, 193, 241], [52, 110, 129], [152, 251, 152], [27, 131, 102]], [[54, 60, 60], [71, 125, 139], [60, 155, 162], [105, 162, 151], [48, 105, 100]]],
 };
 
 let cellSize;
@@ -162,18 +159,18 @@ function genMap() {
       else if (y < 35) {
         newMap[x][y] = color(0);
       }
-      if (y < 36 && y > 33 && x > 22 && x < 28) {
+      if (y < 36 && y > 33 && x > 9 && x < 15) {
         newMap[x][y] = color(50, 84, 48, 50);
       }
       
       // Road
-      if (x === 25 && y > 34 && y % 8 < 3) {
+      if (x === 12 && y > 34 && y % 7 < 3) {
         newMap[x][y] = color(random(245, 255), random(220, 240), random(0, 25));
       }
-      else if (y > 34 && x > 22 && x < 28) {
+      else if (y > 34 && x > 9 && x < 15) {
         newMap[x][y] = color(random(95, 115));
       }
-      else if (y > 34 && x > 21 && x < 29) {
+      else if (y > 34 && x > 8 && x < 16) {
         newMap[x][y] = color(random(35, 50));
       }
     }
@@ -200,7 +197,7 @@ function genData() {
   return newMap;
 }
 
-// Loads an icon representing the current state
+// Loads the UI
 function drawUI() {
   let boxStroke;
   let boxFill;
@@ -210,35 +207,37 @@ function drawUI() {
   let name;
   let desc;
 
-  // Cafeteria CannaSib
+  // Coffee Beans
   if (state.plant % 3 === 0) {
     boxStroke = color(72, 42, 29);
     boxFill = color(220, 170, 112);
-    textStroke = color(255, 235, 205);
+    textStroke = color(255, 185, 134);
     textFill = color(127, 90, 59);
     char = "C";
     name = "Coffee Beans";
-    desc = "The stuff adults drink like water.";
+    desc = "The seed of a tropical plant of the genus Coffea. ";
   }
 
-  // Washroom WheDe
+  // Watermelon
   else if (state.plant % 3 === 1) {
-    boxFill = color(64, 110, 142);
-    textFill = color(142, 168, 195);
-    boxStroke = color(35, 57, 91);
+    boxStroke = color(66, 95, 6);
+    boxFill = color(200, 223, 170);
+    textStroke = color(219, 31, 72);
+    textFill = color(239, 51, 64);
     char = "W";
     name = "Watermelon";
-    desc = "The stuff everyone drink like water ... in summer.";
+    desc = "A succulent fruit and vine-like plant of the gourd family.";
   }
 
-  // Hallway HerIon
+  // Herbs
   else if (state.plant % 3 === 2) {
-    boxFill = color(48, 105, 100);
-    textFill = color(105, 162, 151);
-    boxStroke = color(54, 60, 60);
+    boxStroke = color(28, 53, 45);
+    boxFill = color(41, 85, 38);
+    textStroke = color(81, 123, 50);
+    textFill = color(111, 153, 64);
     char = "H";
     name = "Herbs";
-    desc = "Always in demand.";
+    desc = "Leafy Greens with culinary, medical, aromatic, or spiritual effects.";
   }
 
   // Money Box
@@ -265,9 +264,9 @@ function drawUI() {
   // Plant Text
   textSize(3.75 * cellSize);
   fill(textStroke);
-  text(char, 1.5 * cellSize + 2, 10.5 * cellSize + 2);
+  text(char, 1.3 * cellSize + 2, 10.5 * cellSize + 2);
   fill(textFill);
-  text(char, 1.5 * cellSize, 10.5 * cellSize);
+  text(char, 1.3 * cellSize, 10.5 * cellSize);
 
   textSize(2.75 * cellSize);
   fill(textStroke);
@@ -275,14 +274,11 @@ function drawUI() {
   fill(textFill);
   text(name, 6.5 * cellSize, 10 * cellSize);
 
-
-
-  // textSize(24);
-  // text(desc, 14, cellSize / 2 + 150, 475, xOffset);
-  // fill(textFill);
-  // text(desc, 16, cellSize / 2 + 150, 475, xOffset);
-  // textSize(26);
-  // text(name, 76, cellSize / 2 + 100, xOffset);
+  textSize(2 * cellSize);
+  fill(textStroke);
+  text(desc, 1.5 * cellSize + 2, 14.25 * cellSize + 2, xOffset - cellSize);
+  fill(textFill);
+  text(desc, 1.5 * cellSize, 14.25 * cellSize, xOffset - cellSize);
 }
 
 // Classes
@@ -290,6 +286,7 @@ class Plant {
   constructor(state, growth) {
     this.state = state;
     this.growth = growth;
+    this.stages = [[136, 82, 127], [159, 135, 175], [188, 231, 253], [169, 237, 190], [80, 132, 132]], [[54, 60, 60], [65, 193, 241], [52, 110, 129], [152, 251, 152], [27, 131, 102]], [[54, 60, 60], [71, 125, 139], [60, 155, 162], [105, 162, 151], [48, 105, 100]];
   }
 
   update() {
@@ -304,6 +301,7 @@ class Player {
     this.x = x;
     this.y = y;
     this.wallet = 100;
+    this.form = "Normal";
   }
 
   update() {
@@ -321,29 +319,31 @@ class Player {
       this.y--;
     }
 
-    if(player.y < 33 && player.x > 22 && player.x < 28) {
-      state.identity = "normal";
+    if (player.y < 34 && player.x > 10 && player.x < 15) {
+      this.form = "Normal";
     }
-    if(player.y > 33 && player.x > 22 && player.x < 28) {
-      state.identity = "truck";
+    if (player.y > 33 && player.x > 10 && player.x < 15) {
+      this.form = "Car";
     }   
   }
 
   display() {
     fill(0);
-    if (state.identity === "normal") {
-      this.x = constrain(player.x, 1, 63);
-      this.y = constrain(player.y, 1, 33);
+    if (this.form === "Normal") {
+      this.x = constrain(this.x, 1, 63);
+      this.y = constrain(this.y, 1, 33);
       state.size = [1.5, 1.5];
       rect((this.x - state.size[0] / 2) * cellSize + xOffset, (this.y - state.size[1] / 2) * cellSize + yOffset, cellSize * state.size[0], cellSize * state.size[1]);
       fill(255);
-      rect((this.x - state.size[0] / 2) * cellSize + xOffset + 4, (this.y - state.size[1] / 2) * cellSize + yOffset + 4, cellSize * state.size[0] - 8, cellSize * state.size[1] - 8);
+      rect((this.x - state.size[0] / 2 + 0.25) * cellSize + xOffset, (this.y - state.size[1] / 2 + 0.25) * cellSize + yOffset, cellSize * (state.size[0] - 0.5), cellSize * (state.size[1] - 0.5));
     }
-    else if (state.identity === "truck") {
-      this.x = constrain(player.x, 24, 27);
-      this.y = constrain(player.y, 33, 64);
+    else if (this.form === "Car") {
+      this.x = constrain(this.x, 11, 14);
+      this.y = constrain(this.y, 33, 64);
       state.size = [1.5, 4.5];
-      rect((this.x - state.size[0] / 2) * cellSize + xOffset, this.y * cellSize + yOffset, cellSize * state.size[0], cellSize * state.size[1]);
+      rect((this.x - state.size[0] / 2) * cellSize + xOffset, (this.y - state.size[1] / 2) * cellSize + yOffset, cellSize * state.size[0], cellSize * state.size[1]);
+      fill(255);
+      rect((this.x - state.size[0] / 2 + 0.25) * cellSize + xOffset, (this.y - state.size[1] / 2 + 0.25) * cellSize + yOffset, cellSize * (state.size[0] - 0.5), cellSize * (state.size[1] - 0.5));
     }
   }
 }
