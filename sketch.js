@@ -33,25 +33,33 @@ let font;
 let market = [[100, 250], [500, 1000], [2000, 5000]];
 let player;
 let playerImage;
-let startScreen;
-let begin = false;
 
 // Loads Font
 function preload() {
   font = loadFont("Pixel Font.TTF");
-  startScreen = loadImage("Start Screen.png");
 }
 
 // Builds Map, Sets up Text Scale
 function setup() {
   createCanvas(windowWidth, windowHeight);
+  background(0);
   resizeScale();
   textFont(font);
   cellSize = min(windowHeight, windowWidth) / GRID_SIZE;
   maps.lobbyMap = genMap();
   maps.data = genData();
   player = new Player(GRID_SIZE / 2, GRID_SIZE / 2, 100);
-  image(startScreen, 0, 0, windowWidth, windowHeight);
+}
+
+// Simulates the game
+function draw() {
+  noStroke();
+  drawMap(GRID_SIZE, GRID_SIZE);
+  drawPlants();
+  drawUI();
+  player.update();
+  player.display();
+
 }
 
 // Centers the grid
@@ -61,8 +69,6 @@ function resizeScale() {
 }
 
 function mousePressed() {
-  begin = true;
-  background(0);
   // Variables corresponding to mouse pos within grid
   let x = floor((mouseX - xOffset) / cellSize);
   let y = floor((mouseY - yOffset) / cellSize);
@@ -84,15 +90,13 @@ function mousePressed() {
 
 function keyPressed() {
   // Collects all Plants
-  if (begin === true) {
-    if (keyCode === 32) {
-      for (let x = 0; x < GRID_SIZE; x++) {
-        for (let y = 0; y < 34; y++) {
-          if (maps.data[x][y].growth === 4) {
-            player.wallet += market[maps.data[x][y].state - 2][1];
-            maps.data[x][y] = 1;
-            maps.lobbyMap[x][y] = color(random(220, 230));
-          }
+  if (keyCode === 32) {
+    for (let x = 0; x < GRID_SIZE; x++) {
+      for (let y = 0; y < 34; y++) {
+        if (maps.data[x][y].growth === 4) {
+          player.wallet += market[maps.data[x][y].state - 2][1];
+          maps.data[x][y] = 1;
+          maps.lobbyMap[x][y] = color(random(220, 230));
         }
       }
     }
@@ -106,19 +110,6 @@ function keyPressed() {
     }
     state.plant = state.plant % 3;
   }
-}
-
-// Simulates the game
-function draw() {
-  if (begin === true) {
-    noStroke();
-    drawMap(GRID_SIZE, GRID_SIZE);
-    drawPlants();
-    drawUI();
-    player.update();
-    player.display();
-  }
-  console.log(begin);
 }
 
 // Loads the map
