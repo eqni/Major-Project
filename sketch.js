@@ -32,7 +32,7 @@ let yOffset;
 let font;
 let market = [[100, 250], [500, 1000], [2000, 5000]];
 let player;
-let playerImage;
+let gameStarted = false;
 
 // Loads Font
 function preload() {
@@ -53,13 +53,18 @@ function setup() {
 
 // Simulates the game
 function draw() {
-  noStroke();
-  drawMap(GRID_SIZE, GRID_SIZE);
-  drawPlants();
-  drawUI();
-  player.update();
-  player.display();
+  if (gameStarted) {
+    noStroke();
+    drawMap(GRID_SIZE, GRID_SIZE);
+    drawPlants();
+    drawUI();
+    player.update();
+    player.display();
+  }
+}
 
+function startGame() {
+  gameStarted = true;
 }
 
 // Centers the grid

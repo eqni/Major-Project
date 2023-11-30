@@ -1,6 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <style>
+      @font-face { 
+        font-family: PixelFont; src: url('Pixel Font.TTF');
+      }
+      .button {
+        border: none;
+        color: white;
+        padding: 16px 32px;
+        text-align: center;
+        font-size: 16px;
+        transition-duration: 0.4s;
+        cursor: pointer;
+        background-color: white;
+        color: #04AA6D;
+      }
+
+      .button:hover {
+        background-color: #04AA6D;
+        color: white;
+      }
+    </style>
+
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -15,10 +37,10 @@
 
   
   <body>
-    <script src="script.js">startGame()</script>
-    <button onclick="startGame()">New Game</button>
-    <button onclick="continueGame()">Continue Game</button>
-    </body>
+    <script>
+      let buttonArray = [];
+    </script>
+    <button class="button", onclick="startGame()">Start</button>
     <script src="sketch.js"></script>
     
   </body>
