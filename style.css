@@ -6,3 +6,9 @@ html, body {
 canvas {
   display: block;
 }
+
+body, button {
+  color: blue;
+  text-align: center;
+  font-family: cursive;
+}
