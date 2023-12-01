@@ -61,6 +61,7 @@ function draw() {
     player.update();
     player.display();
   }
+  console.log(state.plant);
 }
 
 function startGame() {
@@ -95,7 +96,7 @@ function mousePressed() {
 
 function keyPressed() {
   // Collects all Plants
-  if (keyCode === 32) {
+  if (keyCode === 69) {
     for (let x = 0; x < GRID_SIZE; x++) {
       for (let y = 0; y < 34; y++) {
         if (maps.data[x][y].growth === 4) {
@@ -105,16 +106,12 @@ function keyPressed() {
         }
       }
     }
-
-    // Changes current plant
-    if (keyCode === 38) {
-      state.plant++;
-    }
-    else if (keyCode === 40) {
-      state.plant++;
-    }
-    state.plant = state.plant % 3;
   }
+  // Changes current plant
+  if (keyCode === 70) {
+    state.plant++;
+  }
+  state.plant = state.plant % 3;
 }
 
 // Loads the map
@@ -209,7 +206,7 @@ function drawUI() {
   let desc;
 
   // Coffee Beans
-  if (state.plant % 3 === 0) {
+  if (state.plant === 0) {
     boxStroke = color(72, 42, 29);
     boxFill = color(220, 170, 112);
     textStroke = color(255, 185, 134);
@@ -220,7 +217,7 @@ function drawUI() {
   }
 
   // Watermelon
-  else if (state.plant % 3 === 1) {
+  else if (state.plant === 1) {
     boxStroke = color(66, 95, 6);
     boxFill = color(200, 223, 170);
     textStroke = color(219, 31, 72);
@@ -231,7 +228,7 @@ function drawUI() {
   }
 
   // Herbs
-  else if (state.plant % 3 === 2) {
+  else if (state.plant === 2) {
     boxStroke = color(28, 53, 45);
     boxFill = color(41, 85, 38);
     textStroke = color(81, 123, 50);
