@@ -11,4 +11,27 @@ body, button {
   text-align: center;
   font-family: PixelFont;
   background-color: black;
+  margin: 0 auto;
+}
+
+@font-face { 
+  font-family: PixelFont; src: url('Pixel Font.TTF');
+}
+.button {
+  border: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+  text-align: center;
+  font-size: 16px;
+  transition-duration: 0.4s;
+  cursor: pointer;
+  background-color: white;
+  color: #04AA6D;
+}
+
+.button:hover {
+  background-color: #04AA6D;
+  color: white;
 }

@@ -33,6 +33,7 @@ let font;
 let market = [[100, 250], [500, 1000], [2000, 5000]];
 let player;
 let gameStarted = false;
+let stockData = [];
 
 // Loads Font
 function preload() {
@@ -191,7 +192,10 @@ function genData() {
       }
     }
   }
-
+  for (let i = 0; i < 3; i++) {
+    stockData.push([]);
+    stockData[i] = market[1];
+  }
   return newMap;
 }
 
@@ -277,8 +281,31 @@ function drawUI() {
   text(desc, 1.7 * cellSize, 14.45 * cellSize, xOffset - cellSize);
   fill(textFill);
   text(desc, 1.5 * cellSize, 14.25 * cellSize, xOffset - cellSize);
+
+  // Stock Market Graph
+  stroke(boxStroke);
+  strokeWeight(cellSize);
+  fill(255);
+  rect(0.5 * cellSize, 31 * cellSize, xOffset - cellSize, windowHeight - 31.5 * cellSize);
+  stocks(textFill);
 }
 
+function stocks(color) {
+  noStroke();
+  fill(color);
+  for (let i = 0; i < 3; i++) {
+    let j = stockData[i][stockData[i].length - 1];
+    j += random(-market[state.plant][1], market[state.plant][1]);
+    stockData[i].push(j);
+    if (stockData[i].length > 400) {
+      stockData[i].splice(0, 1);
+    }
+  }
+  for (let i = 0; i < stockData[state.plant].length; i++) {
+    rect(xOffset - cellSize - i, windowHeight - 2 * cellSize - stockData[state.plant][i] / market[state.plant][1], 0.25 * cellSize, 0.25 * cellSize);
+  }
+  console.log(stockData);
+}
 // Classes
 class Plant {
   constructor(state, growth) {
@@ -326,6 +353,7 @@ class Player {
 
   display() {
     fill(0);
+    noStroke();
     if (this.form === "Normal") {
       this.x = constrain(this.x, 1, 63);
       this.y = constrain(this.y, 1, 33);
