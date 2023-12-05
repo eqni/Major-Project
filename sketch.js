@@ -62,7 +62,6 @@ function draw() {
     player.update();
     player.display();
   }
-  console.log(state.plant);
 }
 
 function startGame() {
@@ -296,15 +295,16 @@ function stocks(color) {
   for (let i = 0; i < 3; i++) {
     let j = stockData[i][stockData[i].length - 1];
     j += random(-market[state.plant][1], market[state.plant][1]);
+    j = constrain(j, market[state.plant][0], 2 * market[state.plant][1]);
     stockData[i].push(j);
-    if (stockData[i].length > 400) {
+    console.log(j);
+    if (stockData[i].length > 3375) {
       stockData[i].splice(0, 1);
     }
   }
   for (let i = 0; i < stockData[state.plant].length; i++) {
-    rect(xOffset - cellSize - i, windowHeight - 2 * cellSize - stockData[state.plant][i] / market[state.plant][1], 0.25 * cellSize, 0.25 * cellSize);
+    rect(cellSize + i * 0.01 * cellSize, (windowHeight + 38 * cellSize) / 2 - (stockData[state.plant][i] - market[state.plant][1]) * 0.0775 * cellSize, 0.25 * cellSize, 0.25 * cellSize);
   }
-  console.log(stockData);
 }
 // Classes
 class Plant {

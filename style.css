@@ -1,37 +1,33 @@
-html, body {
+*
+{
   margin: 0;
   padding: 0;
-}
-
-canvas {
-  display: block;
-}
-
-body, button {
-  text-align: center;
-  font-family: PixelFont;
-  background-color: black;
-  margin: 0 auto;
+  overflow: hidden;
 }
 
 @font-face { 
   font-family: PixelFont; src: url('Pixel Font.TTF');
 }
-.button {
-  border: none;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 10px;
-  text-align: center;
-  font-size: 16px;
-  transition-duration: 0.4s;
-  cursor: pointer;
-  background-color: white;
-  color: #04AA6D;
-}
 
-.button:hover {
+.box
+{
+  position: absolute;
+  cursor: pointer;
+  border: none;
   background-color: #04AA6D;
   color: white;
+  font-family: PixelFont;
+  font-size: 3.2vw;
+  text-align: center;
+  top: 50%;
+  left: 50%;
+  width: 20%;
+  height: 10%;
+  transform: translate(-50%, -50%);
+  transition-duration: 0.4s;
+}
+
+.box:hover {
+  background-color: white;
+  color: #04AA6D;
 }
