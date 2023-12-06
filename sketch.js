@@ -32,7 +32,6 @@ let yOffset;
 let font;
 let market = [[100, 250], [500, 1000], [2000, 5000]];
 let player;
-let gameStarted = false;
 let stockData = [];
 
 // Loads Font
@@ -43,33 +42,73 @@ function preload() {
 // Builds Map, Sets up Text Scale
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  background(0);
-  resizeScale();
+  createMap();
+  centerMap();
   textFont(font);
   cellSize = min(windowHeight, windowWidth) / GRID_SIZE;
-  maps.lobbyMap = genMap();
-  maps.data = genData();
   player = new Player(GRID_SIZE / 2, GRID_SIZE / 2, 100);
 }
 
 // Simulates the game
 function draw() {
-  if (gameStarted) {
-    noStroke();
-    drawMap(GRID_SIZE, GRID_SIZE);
-    drawPlants();
-    drawUI();
-    player.update();
-    player.display();
+  noStroke();
+  updateScale();
+  drawMap(GRID_SIZE, GRID_SIZE);
+  drawPlants();
+  drawUI();
+  player.update();
+  player.display();
+}
+
+// Creates the map
+function createMap() {
+  let newMap = [];
+  let mapData = [];
+
+  for (let x = 0; x < GRID_SIZE; x++) {
+    newMap.push([]);
+    mapData.push([]);
+    for (let y = 0; y < GRID_SIZE; y++) {
+      newMap[x].push([]);
+      mapData[x].push([]);
+
+      // Dirt
+      newMap[x][y] = color(random(110, 130), random(40, 50), random(25, 40));
+
+      // lobbyMap
+      if (y < 34) {
+        newMap[x][y] = color(random(220, 230));
+        mapData[x][y] = 1;
+      }
+      else if (y < 35) {
+        newMap[x][y] = color(0);
+      }
+      if (y < 36 && y > 33 && x > 9 && x < 15) {
+        newMap[x][y] = color(50, 84, 48, 50);
+      }
+      
+      // Road
+      if (x === 12 && y > 34 && y % 7 < 3) {
+        newMap[x][y] = color(random(245, 255), random(220, 240), random(0, 25));
+      }
+      else if (y > 34 && x > 9 && x < 15) {
+        newMap[x][y] = color(random(95, 115));
+      }
+      else if (y > 34 && x > 8 && x < 16) {
+        newMap[x][y] = color(random(35, 50));
+      }
+    }
   }
+  for (let i = 0; i < 3; i++) {
+    stockData.push([]);
+    stockData[i] = market[1];
+  }
+  maps.lobbyMap = newMap;
+  maps.data = mapData;
 }
 
-function startGame() {
-  gameStarted = true;
-}
-
-// Centers the grid
-function resizeScale() {
+// Centers the map
+function centerMap() {
   yOffset = constrain((windowHeight - windowWidth) / 2, 0, windowHeight);
   xOffset = constrain((windowWidth - windowHeight) / 2, 0, windowWidth);
 }
@@ -85,12 +124,10 @@ function mousePressed() {
     maps.data[x][y] = 1; 
     maps.lobbyMap[x][y] = color(random(220, 230));
   }
-  else {
-    if (maps.data[x][y] === 1 && y < 34 && player.wallet >= market[state.plant][0]) {
-      maps.data[x][y] = new Plant(state.plant + 2, 0);
-      maps.lobbyMap[x][y] = color(state.growth[state.plant][0]);
-      player.wallet -= market[state.plant][0];
-    }
+  if (maps.data[x][y] === 1 && y < 34 && player.wallet >= market[state.plant][0]) {
+    maps.data[x][y] = new Plant(state.plant + 2, 0);
+    maps.lobbyMap[x][y] = color(state.growth[state.plant][0]);
+    player.wallet -= market[state.plant][0];
   }
 }
 
@@ -116,6 +153,7 @@ function keyPressed() {
 
 // Loads the map
 function drawMap() {
+  background(0);
   for (let x = 0; x < GRID_SIZE; x++) {
     for (let y = 0; y < GRID_SIZE; y++) {
       fill(maps.lobbyMap[x][y]);
@@ -137,65 +175,9 @@ function drawPlants() {
   }
 }
 
-// Creates the map
-function genMap() {
-  let newMap = [];
+function updateScale() {
+  cellSize = min(windowHeight, windowWidth) / GRID_SIZE;
 
-  // lobbyMap Map
-  for (let x = 0; x < GRID_SIZE; x++) {
-    newMap.push([]);
-    for (let y = 0; y < GRID_SIZE; y++) {
-      newMap[x].push([]);
-
-      // Dirt
-      newMap[x][y] = color(random(110, 130), random(40, 50), random(25, 40));
-
-      // lobbyMap
-      if (y < 34) {
-        newMap[x][y] = color(random(220, 230));
-      }
-      else if (y < 35) {
-        newMap[x][y] = color(0);
-      }
-      if (y < 36 && y > 33 && x > 9 && x < 15) {
-        newMap[x][y] = color(50, 84, 48, 50);
-      }
-      
-      // Road
-      if (x === 12 && y > 34 && y % 7 < 3) {
-        newMap[x][y] = color(random(245, 255), random(220, 240), random(0, 25));
-      }
-      else if (y > 34 && x > 9 && x < 15) {
-        newMap[x][y] = color(random(95, 115));
-      }
-      else if (y > 34 && x > 8 && x < 16) {
-        newMap[x][y] = color(random(35, 50));
-      }
-    }
-  }
-  return newMap;
-}
-
-// Adds additional information to categorize specific items in the grid
-function genData() {
-  let newMap = [];
-  for (let x = 0; x < GRID_SIZE; x++) {
-    newMap.push([]);
-    for (let y = 0; y < GRID_SIZE; y++) {
-      newMap[x].push([]);
-      if (y < 34 && y > 0) {
-        newMap[x][y] = 1;
-      }
-      else {
-        newMap[x][y] = 0;
-      }
-    }
-  }
-  for (let i = 0; i < 3; i++) {
-    stockData.push([]);
-    stockData[i] = market[1];
-  }
-  return newMap;
 }
 
 // Loads the UI
@@ -281,31 +263,31 @@ function drawUI() {
   fill(textFill);
   text(desc, 1.5 * cellSize, 14.25 * cellSize, xOffset - cellSize);
 
-  // Stock Market Graph
-  stroke(boxStroke);
-  strokeWeight(cellSize);
-  fill(255);
-  rect(0.5 * cellSize, 31 * cellSize, xOffset - cellSize, windowHeight - 31.5 * cellSize);
-  stocks(textFill);
+  // // Stock Market Graph
+  // stroke(boxStroke);
+  // strokeWeight(cellSize);
+  // fill(255);
+  // rect(0.5 * cellSize, 31 * cellSize, xOffset - cellSize, windowHeight - 31.5 * cellSize);
+  // // stocks(textFill);
 }
 
-function stocks(color) {
-  noStroke();
-  fill(color);
-  for (let i = 0; i < 3; i++) {
-    let j = stockData[i][stockData[i].length - 1];
-    j += random(-market[state.plant][1], market[state.plant][1]);
-    j = constrain(j, market[state.plant][0], 2 * market[state.plant][1]);
-    stockData[i].push(j);
-    console.log(j);
-    if (stockData[i].length > 3375) {
-      stockData[i].splice(0, 1);
-    }
-  }
-  for (let i = 0; i < stockData[state.plant].length; i++) {
-    rect(cellSize + i * 0.01 * cellSize, (windowHeight + 38 * cellSize) / 2 - (stockData[state.plant][i] - market[state.plant][1]) * 0.0775 * cellSize, 0.25 * cellSize, 0.25 * cellSize);
-  }
-}
+// function stocks(color) {
+//   noStroke();
+//   fill(color);
+//   for (let i = 0; i < 3; i++) {
+//     let j = stockData[i][stockData[i].length - 1];
+//     j += random(-market[state.plant][1] / 100, market[state.plant][1] / 100);
+//     j = constrain(j, market[state.plant][0], 2 * market[state.plant][1]);
+//     stockData[i].push(j);
+//     console.log(j);
+//     if (stockData[i].length > 3375) {
+//       stockData[i].splice(0, 1);
+//     }
+//   }
+//   for (let i = 0; i < stockData[state.plant].length; i++) {
+//     rect(cellSize + i * 0.01 * cellSize, (windowHeight + 38 * cellSize) / 2 - (stockData[state.plant][i] - market[state.plant][1]) * 0.0775 * cellSize, 0.25 * cellSize, 0.25 * cellSize);
+//   }
+// }
 // Classes
 class Plant {
   constructor(state, growth) {
