@@ -71,31 +71,21 @@ function createMap() {
     for (let y = 0; y < GRID_SIZE; y++) {
       newMap[x].push([]);
       mapData[x].push([]);
-
-      // Dirt
-      newMap[x][y] = color(random(110, 130), random(40, 50), random(25, 40));
-
-      // lobbyMap
-      if (y < 34) {
-        newMap[x][y] = color(random(220, 230));
+      if (y === 54) {
+        newMap[x][y] = color(0);
+        mapData[x][y] = 0;
+      }
+      else if (y > 54 && x % 2 === 0) {
+        newMap[x][y] = color(139, 69, 19);
         mapData[x][y] = 1;
       }
-      else if (y < 35) {
-        newMap[x][y] = color(0);
+      else if (y > 54 && x % 2 === 1) {
+        newMap[x][y] = color(159, 89, 39);
+        mapData[x][y] = 1;
       }
-      if (y < 36 && y > 33 && x > 9 && x < 15) {
-        newMap[x][y] = color(50, 84, 48, 50);
-      }
-      
-      // Road
-      if (x === 12 && y > 34 && y % 7 < 3) {
-        newMap[x][y] = color(random(245, 255), random(220, 240), random(0, 25));
-      }
-      else if (y > 34 && x > 9 && x < 15) {
-        newMap[x][y] = color(random(95, 115));
-      }
-      else if (y > 34 && x > 8 && x < 16) {
-        newMap[x][y] = color(random(35, 50));
+      else {
+        newMap[x][y] = color(random(220, 230));
+        mapData[x][y] = 2;
       }
     }
   }
@@ -120,12 +110,12 @@ function mousePressed() {
 
   // Plants and collects weeds
   if (maps.data[x][y].growth === 4) {
-    player.wallet += market[maps.data[x][y].state - 2][1];
-    maps.data[x][y] = 1; 
+    player.wallet += market[maps.data[x][y].state - 3][1];
+    maps.data[x][y] = 2; 
     maps.lobbyMap[x][y] = color(random(220, 230));
   }
-  if (maps.data[x][y] === 1 && y < 34 && player.wallet >= market[state.plant][0]) {
-    maps.data[x][y] = new Plant(state.plant + 2, 0);
+  if (maps.data[x][y] === 2 && player.wallet >= market[state.plant][0]) {
+    maps.data[x][y] = new Plant(state.plant + 3, 0);
     maps.lobbyMap[x][y] = color(state.growth[state.plant][0]);
     player.wallet -= market[state.plant][0];
   }
@@ -135,10 +125,10 @@ function keyPressed() {
   // Collects all Plants
   if (keyCode === 69) {
     for (let x = 0; x < GRID_SIZE; x++) {
-      for (let y = 0; y < 34; y++) {
+      for (let y = 0; y < 52; y++) {
         if (maps.data[x][y].growth === 4) {
-          player.wallet += market[maps.data[x][y].state - 2][1];
-          maps.data[x][y] = 1;
+          player.wallet += market[maps.data[x][y].state - 3][1];
+          maps.data[x][y] = 2;
           maps.lobbyMap[x][y] = color(random(220, 230));
         }
       }
@@ -166,10 +156,10 @@ function drawMap() {
 function drawPlants() {
   for (let x = 0; x < GRID_SIZE; x++) {
     for (let y = 0; y < GRID_SIZE; y++) {
-      if (maps.data[x][y].state > 1 && random() < 0.05) {
+      if (maps.data[x][y].state > 2 && random() < 0.05) {
         let currentPlant = maps.data[x][y];
         currentPlant.update();
-        maps.lobbyMap[x][y] = color(state.growth[maps.data[x][y].state - 2][maps.data[x][y].growth]);
+        maps.lobbyMap[x][y] = color(state.growth[maps.data[x][y].state - 3][maps.data[x][y].growth]);
       }
     }
   }
