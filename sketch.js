@@ -16,48 +16,60 @@
 const GRID_SIZE = 64;
 
 let maps = {
-  lobbyMap: [],
-  shopMap: [],
+  greenhouse: [],
+  shop: [],
   data: []
 };
 
-let state = {
-  plant: 0,
-  growth: [[[136, 82, 127], [159, 135, 175], [188, 231, 253], [169, 237, 190], [80, 132, 132]], [[54, 60, 60], [65, 193, 241], [52, 110, 129], [152, 251, 152], [27, 131, 102]], [[54, 60, 60], [71, 125, 139], [60, 155, 162], [105, 162, 151], [48, 105, 100]]]
-};
-
+// Variables
 let cellSize;
 let xOffset;
 let yOffset;
 let font;
-let market = [[100, 250], [500, 1000], [2000, 5000]];
+let prices = [[100, 250], [500, 1000], [2000, 5000]];
+let plants = [[[136, 82, 127], [159, 135, 175], [188, 231, 253], [169, 237, 190], [80, 132, 132]], [[54, 60, 60], [65, 193, 241], [52, 110, 129], [152, 251, 152], [27, 131, 102]], [[54, 60, 60], [71, 125, 139], [60, 155, 162], [105, 162, 151], [48, 105, 100]]];
+let currentPlant = 0;
 let player;
-let stockData = [];
+let started = false;
+
+// let stockData = [];
+
+// Sounds
+let switchPlant;
+
 
 // Loads Font
 function preload() {
-  font = loadFont("Pixel Font.TTF");
+  font = loadFont("assets/Pixel Font.TTF");
+  switchPlant = loadSound("assets/switch plant.mp3")
 }
 
 // Builds Map, Sets up Text Scale
 function setup() {
   createCanvas(windowWidth, windowHeight);
+  background(0);
   createMap();
   centerMap();
   textFont(font);
-  cellSize = min(windowHeight, windowWidth) / GRID_SIZE;
   player = new Player(GRID_SIZE / 2, GRID_SIZE / 2, 100);
+  cellSize = min(windowHeight, windowWidth) / GRID_SIZE;
 }
 
 // Simulates the game
 function draw() {
-  noStroke();
-  updateScale();
-  drawMap(GRID_SIZE, GRID_SIZE);
-  drawPlants();
-  drawUI();
-  player.update();
-  player.display();
+  if (started) {
+    drawMap(GRID_SIZE, GRID_SIZE);
+    drawPlants();
+    drawUI();
+    player.update();
+    player.display();
+  }
+}
+
+// Activates the game code
+function startGame() {
+  started = true;
+  player.wallet = 100;
 }
 
 // Creates the map
@@ -89,11 +101,11 @@ function createMap() {
       }
     }
   }
-  for (let i = 0; i < 3; i++) {
-    stockData.push([]);
-    stockData[i] = market[1];
-  }
-  maps.lobbyMap = newMap;
+  // for (let i = 0; i < 3; i++) {
+  //   stockData.push([]);
+  //   stockData[i] = prices[1];
+  // }
+  maps.greenhouse = newMap;
   maps.data = mapData;
 }
 
@@ -110,14 +122,14 @@ function mousePressed() {
 
   // Plants and collects weeds
   if (maps.data[x][y].growth === 4) {
-    player.wallet += market[maps.data[x][y].state - 3][1];
+    player.wallet += prices[maps.data[x][y].state - 3][1];
     maps.data[x][y] = 2; 
-    maps.lobbyMap[x][y] = color(random(220, 230));
+    maps.greenhouse[x][y] = color(random(220, 230));
   }
-  if (maps.data[x][y] === 2 && player.wallet >= market[state.plant][0]) {
-    maps.data[x][y] = new Plant(state.plant + 3, 0);
-    maps.lobbyMap[x][y] = color(state.growth[state.plant][0]);
-    player.wallet -= market[state.plant][0];
+  if (maps.data[x][y] === 2 && player.wallet >= prices[currentPlant][0]) {
+    maps.data[x][y] = new Plant(currentPlant + 3, plants[currentPlant]);
+    maps.greenhouse[x][y] = color(plants[currentPlant][0]);
+    player.wallet -= prices[currentPlant][0];
   }
 }
 
@@ -127,18 +139,19 @@ function keyPressed() {
     for (let x = 0; x < GRID_SIZE; x++) {
       for (let y = 0; y < 52; y++) {
         if (maps.data[x][y].growth === 4) {
-          player.wallet += market[maps.data[x][y].state - 3][1];
+          player.wallet += prices[maps.data[x][y].state - 3][1];
           maps.data[x][y] = 2;
-          maps.lobbyMap[x][y] = color(random(220, 230));
+          maps.greenhouse[x][y] = color(random(220, 230));
         }
       }
     }
   }
   // Changes current plant
   if (keyCode === 70) {
-    state.plant++;
+    currentPlant++;
+    switchPlant.play();
   }
-  state.plant = state.plant % 3;
+  currentPlant = currentPlant % 3;
 }
 
 // Loads the map
@@ -146,7 +159,7 @@ function drawMap() {
   background(0);
   for (let x = 0; x < GRID_SIZE; x++) {
     for (let y = 0; y < GRID_SIZE; y++) {
-      fill(maps.lobbyMap[x][y]);
+      fill(maps.greenhouse[x][y]);
       rect(x * cellSize + xOffset, y * cellSize + yOffset, cellSize, cellSize);
     }
   }
@@ -157,17 +170,11 @@ function drawPlants() {
   for (let x = 0; x < GRID_SIZE; x++) {
     for (let y = 0; y < GRID_SIZE; y++) {
       if (maps.data[x][y].state > 2 && random() < 0.05) {
-        let currentPlant = maps.data[x][y];
-        currentPlant.update();
-        maps.lobbyMap[x][y] = color(state.growth[maps.data[x][y].state - 3][maps.data[x][y].growth]);
+        maps.data[x][y].update();
+        maps.greenhouse[x][y] = color(maps.data[x][y].stages[maps.data[x][y].growth]);
       }
     }
   }
-}
-
-function updateScale() {
-  cellSize = min(windowHeight, windowWidth) / GRID_SIZE;
-
 }
 
 // Loads the UI
@@ -181,7 +188,7 @@ function drawUI() {
   let desc;
 
   // Coffee Beans
-  if (state.plant === 0) {
+  if (currentPlant === 0) {
     boxStroke = color(72, 42, 29);
     boxFill = color(220, 170, 112);
     textStroke = color(255, 185, 134);
@@ -192,7 +199,7 @@ function drawUI() {
   }
 
   // Watermelon
-  else if (state.plant === 1) {
+  else if (currentPlant === 1) {
     boxStroke = color(66, 95, 6);
     boxFill = color(200, 223, 170);
     textStroke = color(219, 31, 72);
@@ -203,7 +210,7 @@ function drawUI() {
   }
 
   // Herbs
-  else if (state.plant === 2) {
+  else if (currentPlant === 2) {
     boxStroke = color(28, 53, 45);
     boxFill = color(41, 85, 38);
     textStroke = color(81, 123, 50);
@@ -253,7 +260,7 @@ function drawUI() {
   fill(textFill);
   text(desc, 1.5 * cellSize, 14.25 * cellSize, xOffset - cellSize);
 
-  // // Stock Market Graph
+  // // Stock prices Graph
   // stroke(boxStroke);
   // strokeWeight(cellSize);
   // fill(255);
@@ -266,23 +273,26 @@ function drawUI() {
 //   fill(color);
 //   for (let i = 0; i < 3; i++) {
 //     let j = stockData[i][stockData[i].length - 1];
-//     j += random(-market[state.plant][1] / 100, market[state.plant][1] / 100);
-//     j = constrain(j, market[state.plant][0], 2 * market[state.plant][1]);
+//     j += random(-prices[currentPlant][1] / 100, prices[currentPlant][1] / 100);
+//     j = constrain(j, prices[currentPlant][0], 2 * prices[currentPlant][1]);
 //     stockData[i].push(j);
 //     console.log(j);
 //     if (stockData[i].length > 3375) {
 //       stockData[i].splice(0, 1);
 //     }
 //   }
-//   for (let i = 0; i < stockData[state.plant].length; i++) {
-//     rect(cellSize + i * 0.01 * cellSize, (windowHeight + 38 * cellSize) / 2 - (stockData[state.plant][i] - market[state.plant][1]) * 0.0775 * cellSize, 0.25 * cellSize, 0.25 * cellSize);
+//   for (let i = 0; i < stockData[currentPlant].length; i++) {
+//     rect(cellSize + i * 0.01 * cellSize, (windowHeight + 38 * cellSize) / 2 - (stockData[currentPlant][i] - prices[currentPlant][1]) * 0.0775 * cellSize, 0.25 * cellSize, 0.25 * cellSize);
 //   }
 // }
-// Classes
+
+
+
 class Plant {
-  constructor(state, growth) {
+  constructor(state, stages) {
     this.state = state;
-    this.growth = growth;
+    this.stages = stages;
+    this.growth = 0;
   }
 
   update() {
@@ -296,51 +306,32 @@ class Player {
   constructor(x, y) {
     this.x = x;
     this.y = y;
-    this.wallet = 100;
-    this.form = "Normal";
+    this.wallet = 0;
   }
 
+  // Player Movement
   update() {
-    // Movement
     if (keyIsDown(68)) {
-      this.x++;
+      this.x += 0.1 * cellSize;
     }
     else if (keyIsDown(65)) {
-      this.x--;
+      this.x -= 0.1 * cellSize;
     }
     else if (keyIsDown(83)) {
-      this.y++;
+      this.y += 0.1 * cellSize;
     }
     else if (keyIsDown(87)) {
-      this.y--;
-    }
-
-    if (player.y < 34 && player.x > 10 && player.x < 15) {
-      this.form = "Normal";
-    }
-    if (player.y > 33 && player.x > 10 && player.x < 15) {
-      this.form = "Car";
+      this.y -= 0.1 * cellSize;
     }   
+    this.x = constrain(this.x, 1, 63);
+    this.y = constrain(this.y, 1, 53);
   }
 
+  // Player Character
   display() {
     fill(0);
-    noStroke();
-    if (this.form === "Normal") {
-      this.x = constrain(this.x, 1, 63);
-      this.y = constrain(this.y, 1, 33);
-      state.size = [1.5, 1.5];
-      rect((this.x - state.size[0] / 2) * cellSize + xOffset, (this.y - state.size[1] / 2) * cellSize + yOffset, cellSize * state.size[0], cellSize * state.size[1]);
-      fill(255);
-      rect((this.x - state.size[0] / 2 + 0.25) * cellSize + xOffset, (this.y - state.size[1] / 2 + 0.25) * cellSize + yOffset, cellSize * (state.size[0] - 0.5), cellSize * (state.size[1] - 0.5));
-    }
-    else if (this.form === "Car") {
-      this.x = constrain(this.x, 11, 14);
-      this.y = constrain(this.y, 33, 64);
-      state.size = [1.5, 4.5];
-      rect((this.x - state.size[0] / 2) * cellSize + xOffset, (this.y - state.size[1] / 2) * cellSize + yOffset, cellSize * state.size[0], cellSize * state.size[1]);
-      fill(255);
-      rect((this.x - state.size[0] / 2 + 0.25) * cellSize + xOffset, (this.y - state.size[1] / 2 + 0.25) * cellSize + yOffset, cellSize * (state.size[0] - 0.5), cellSize * (state.size[1] - 0.5));
-    }
+    rect((this.x - 0.75) * cellSize + xOffset, (this.y - 0.75) * cellSize + yOffset, cellSize * 1.5, cellSize * 1.5);
+    fill(255);
+    rect((this.x - 0.5) * cellSize + xOffset, (this.y - 0.5) * cellSize + yOffset, cellSize * 1, cellSize * 1);
   }
 }
