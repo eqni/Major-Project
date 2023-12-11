@@ -31,6 +31,7 @@ let plants = [[[136, 82, 127], [159, 135, 175], [188, 231, 253], [169, 237, 190]
 let currentPlant = 0;
 let player;
 let started = false;
+let inventory = [0, 0, 0];
 
 // let stockData = [];
 
@@ -85,19 +86,19 @@ function createMap() {
       mapData[x].push([]);
       if (y === 54) {
         newMap[x][y] = color(0);
-        mapData[x][y] = 0;
+        mapData[x][y] = -1;
       }
       else if (y > 54 && x % 2 === 0) {
         newMap[x][y] = color(139, 69, 19);
-        mapData[x][y] = 1;
+        mapData[x][y] = -2;
       }
       else if (y > 54 && x % 2 === 1) {
         newMap[x][y] = color(159, 89, 39);
-        mapData[x][y] = 1;
+        mapData[x][y] = -2;
       }
       else {
         newMap[x][y] = color(random(220, 230));
-        mapData[x][y] = 2;
+        mapData[x][y] = -3;
       }
     }
   }
@@ -116,37 +117,49 @@ function centerMap() {
 }
 
 function mousePressed() {
-  // Variables corresponding to mouse pos within grid
+  // Mouse Pos
   let x = floor((mouseX - xOffset) / cellSize);
   let y = floor((mouseY - yOffset) / cellSize);
 
   // Plants and collects weeds
   if (maps.data[x][y].growth === 4) {
-    player.wallet += prices[maps.data[x][y].state - 3][1];
-    maps.data[x][y] = 2; 
+    player.wallet += prices[maps.data[x][y].state][1];
+    maps.data[x][y] = 2;
+    inventory[maps.data[x][y].state] = 1; 
     maps.greenhouse[x][y] = color(random(220, 230));
   }
-  if (maps.data[x][y] === 2 && player.wallet >= prices[currentPlant][0]) {
-    maps.data[x][y] = new Plant(currentPlant + 3, plants[currentPlant]);
+  if (maps.data[x][y] === -3 && player.wallet >= prices[currentPlant][0]) {
+    maps.data[x][y] = new Plant(currentPlant, plants[currentPlant]);
     maps.greenhouse[x][y] = color(plants[currentPlant][0]);
     player.wallet -= prices[currentPlant][0];
   }
 }
 
 function keyPressed() {
-  // Collects all Plants
+  // Collects Plants
   if (keyCode === 69) {
     for (let x = 0; x < GRID_SIZE; x++) {
-      for (let y = 0; y < 52; y++) {
+      for (let y = 0; y < GRID_SIZE; y++) {
         if (maps.data[x][y].growth === 4) {
-          player.wallet += prices[maps.data[x][y].state - 3][1];
-          maps.data[x][y] = 2;
+          inventory[maps.data[x][y].state] += 1;
+          maps.data[x][y] = -3;
           maps.greenhouse[x][y] = color(random(220, 230));
         }
       }
     }
   }
-  // Changes current plant
+
+  // Sells Plants
+  if (keyCode === 81) {
+    for (let i = 0; i < inventory.length; i++) {
+      for (let j = 0; j < inventory[i]; j++) {
+        player.wallet += prices[i][1];
+      }
+    }
+    inventory = [0, 0, 0];
+  }
+
+  // Changes Seed
   if (keyCode === 70) {
     currentPlant++;
     switchPlant.play();
@@ -157,6 +170,7 @@ function keyPressed() {
 // Loads the map
 function drawMap() {
   background(0);
+  noStroke();
   for (let x = 0; x < GRID_SIZE; x++) {
     for (let y = 0; y < GRID_SIZE; y++) {
       fill(maps.greenhouse[x][y]);
@@ -169,7 +183,7 @@ function drawMap() {
 function drawPlants() {
   for (let x = 0; x < GRID_SIZE; x++) {
     for (let y = 0; y < GRID_SIZE; y++) {
-      if (maps.data[x][y].state > 2 && random() < 0.05) {
+      if (maps.data[x][y].state >= 0 && random() < 0.05) {
         maps.data[x][y].update();
         maps.greenhouse[x][y] = color(maps.data[x][y].stages[maps.data[x][y].growth]);
       }
@@ -179,45 +193,22 @@ function drawPlants() {
 
 // Loads the UI
 function drawUI() {
-  let boxStroke;
-  let boxFill;
-  let textStroke;
-  let textFill;
-  let char;
-  let name;
-  let desc;
+  let boxStroke = [color(72, 42, 29), color(66, 95, 6), color(28, 53, 45)];
+  let boxFill = [color(220, 170, 112), color(200, 223, 170), color(41, 85, 38)]
+  let textStroke = [color(255, 185, 134), color(219, 31, 72), color(81, 123, 50)];
+  let textFill = [color(127, 90, 59), color(239, 51, 64), color(111, 153, 64)];
+  let char = ["C", "W", "H"];
+  let name = ["Coffee Beans", "Watermelon", "Herbs"];
+  let desc = ["The seed of a tropical plant of the genus Coffea.", "A succulent fruit and vine-like plant of the gourd family.", "Leafy Greens with culinary, medical, aromatic, or spiritual effects."];
 
-  // Coffee Beans
-  if (currentPlant === 0) {
-    boxStroke = color(72, 42, 29);
-    boxFill = color(220, 170, 112);
-    textStroke = color(255, 185, 134);
-    textFill = color(127, 90, 59);
-    char = "C";
-    name = "Coffee Beans";
-    desc = "The seed of a tropical plant of the genus Coffea. ";
-  }
-
-  // Watermelon
-  else if (currentPlant === 1) {
-    boxStroke = color(66, 95, 6);
-    boxFill = color(200, 223, 170);
-    textStroke = color(219, 31, 72);
-    textFill = color(239, 51, 64);
-    char = "W";
-    name = "Watermelon";
-    desc = "A succulent fruit and vine-like plant of the gourd family.";
-  }
-
-  // Herbs
-  else if (currentPlant === 2) {
-    boxStroke = color(28, 53, 45);
-    boxFill = color(41, 85, 38);
-    textStroke = color(81, 123, 50);
-    textFill = color(111, 153, 64);
-    char = "H";
-    name = "Herbs";
-    desc = "Leafy Greens with culinary, medical, aromatic, or spiritual effects.";
+  // Inventory
+  stroke(35);
+  fill(220);
+  rect(0.5 * cellSize, 32.5 * cellSize, xOffset - cellSize, windowHeight - 33 * cellSize);
+  for (let i = 0; i < 3; i++) {
+    stroke(boxStroke[i]);
+    fill(boxFill[i]);
+    text(inventory[i], 2 * cellSize, (36 + 3 * i) * cellSize);
   }
 
   // Money Box
@@ -227,8 +218,8 @@ function drawUI() {
   rect(0.5 * cellSize, 0.5 * cellSize, xOffset - cellSize, 5 * cellSize);
 
   // Plant Box
-  stroke(boxStroke);
-  fill(boxFill);
+  stroke(boxStroke[currentPlant]);
+  fill(boxFill[currentPlant]);
   rect(0.5 * cellSize, 6.5 * cellSize, 5 * cellSize, 5 * cellSize);
   rect(5.5 * cellSize, 6.5 * cellSize, xOffset - 6 * cellSize, 5 * cellSize);
   rect(0.5 * cellSize, 11.5 * cellSize, xOffset - cellSize, 20 * cellSize);
@@ -243,50 +234,23 @@ function drawUI() {
 
   // Plant Text
   textSize(3.75 * cellSize);
-  fill(textStroke);
-  text(char, 1.5 * cellSize, 10.7 * cellSize);
-  fill(textFill);
-  text(char, 1.3 * cellSize, 10.5 * cellSize);
+  fill(textStroke[currentPlant]);
+  text(char[currentPlant], 1.5 * cellSize, 10.7 * cellSize);
+  fill(textFill[currentPlant]);
+  text(char[currentPlant], 1.3 * cellSize, 10.5 * cellSize);
 
   textSize(2.75 * cellSize);
-  fill(textStroke);
-  text(name, 6.7 * cellSize, 10.2 * cellSize);
-  fill(textFill);
-  text(name, 6.5 * cellSize, 10 * cellSize);
+  fill(textStroke[currentPlant]);
+  text(name[currentPlant], 6.7 * cellSize, 10.2 * cellSize);
+  fill(textFill[currentPlant]);
+  text(name[currentPlant], 6.5 * cellSize, 10 * cellSize);
 
   textSize(2 * cellSize);
-  fill(textStroke);
-  text(desc, 1.7 * cellSize, 14.45 * cellSize, xOffset - cellSize);
-  fill(textFill);
-  text(desc, 1.5 * cellSize, 14.25 * cellSize, xOffset - cellSize);
-
-  // // Stock prices Graph
-  // stroke(boxStroke);
-  // strokeWeight(cellSize);
-  // fill(255);
-  // rect(0.5 * cellSize, 31 * cellSize, xOffset - cellSize, windowHeight - 31.5 * cellSize);
-  // // stocks(textFill);
+  fill(textStroke[currentPlant]);
+  text(desc[currentPlant], 1.7 * cellSize, 14.45 * cellSize, xOffset - cellSize);
+  fill(textFill[currentPlant]);
+  text(desc[currentPlant], 1.5 * cellSize, 14.25 * cellSize, xOffset - cellSize);
 }
-
-// function stocks(color) {
-//   noStroke();
-//   fill(color);
-//   for (let i = 0; i < 3; i++) {
-//     let j = stockData[i][stockData[i].length - 1];
-//     j += random(-prices[currentPlant][1] / 100, prices[currentPlant][1] / 100);
-//     j = constrain(j, prices[currentPlant][0], 2 * prices[currentPlant][1]);
-//     stockData[i].push(j);
-//     console.log(j);
-//     if (stockData[i].length > 3375) {
-//       stockData[i].splice(0, 1);
-//     }
-//   }
-//   for (let i = 0; i < stockData[currentPlant].length; i++) {
-//     rect(cellSize + i * 0.01 * cellSize, (windowHeight + 38 * cellSize) / 2 - (stockData[currentPlant][i] - prices[currentPlant][1]) * 0.0775 * cellSize, 0.25 * cellSize, 0.25 * cellSize);
-//   }
-// }
-
-
 
 class Plant {
   constructor(state, stages) {
