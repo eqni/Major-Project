@@ -4,7 +4,7 @@
 // 11/21/2023
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////
-// Game: An Upstart Gardener takes over an abandoned greenhouse to begin their produce empire!
+// Game: An Upstart Gardener takes over an abandoned base to begin their produce empire!
 //
 // Instructions: WASD Movement. Mouse Click to plant seeds and harvest plants. Spacebar harvests
 // all plants. Plants cost money, but make back money when they are harvested. Arrow Keys Cycle
@@ -16,7 +16,7 @@
 const GRID_SIZE = 64;
 
 let maps = {
-  greenhouse: [],
+  base: [],
   shop: [],
   data: []
 };
@@ -32,6 +32,7 @@ let currentPlant = 0;
 let player;
 let started = false;
 let inventory = [0, 0, 0];
+let area = "base";
 
 // let stockData = [];
 
@@ -75,38 +76,53 @@ function startGame() {
 
 // Creates the map
 function createMap() {
-  let newMap = [];
+  let baseMap = [];
+  let shopMap = [];
   let mapData = [];
 
   for (let x = 0; x < GRID_SIZE; x++) {
-    newMap.push([]);
+    baseMap.push([]);
+    shopMap.push([]);
     mapData.push([]);
     for (let y = 0; y < GRID_SIZE; y++) {
-      newMap[x].push([]);
+      baseMap[x].push([]);
+      shopMap[x].push([]);
       mapData[x].push([]);
-      if (y === 54) {
-        newMap[x][y] = color(0);
+
+      // Base Map
+      if (y === 63 && x < 35 && x > 28) {
+        baseMap[x][y] = color(120, 168, 134);
+        mapData[x][y] = -2;
+      }
+      else if (y === 63) {
+        baseMap[x][y] = color(0);
         mapData[x][y] = -1;
       }
-      else if (y > 54 && x % 2 === 0) {
-        newMap[x][y] = color(139, 69, 19);
-        mapData[x][y] = -2;
-      }
-      else if (y > 54 && x % 2 === 1) {
-        newMap[x][y] = color(159, 89, 39);
-        mapData[x][y] = -2;
-      }
       else {
-        newMap[x][y] = color(random(220, 230));
+        baseMap[x][y] = color(random(220, 230));
         mapData[x][y] = -3;
+      }
+
+      // Shop Map
+      if (y === 0 && x < 35 && x > 28) {
+        shopMap[x][y] = color(120, 168, 134);
+        mapData[x][y] = -2;
+      }
+      else if (y === 0) {
+        shopMap[x][y] = color(0);
+        mapData[x][y] = -1;
+      }
+      else if (x % 2 === 0) {
+        shopMap[x][y] = color(139, 69, 19);
+      }
+      else if (x % 2 === 1) {
+        shopMap[x][y] = color(159, 89, 39);
       }
     }
   }
-  // for (let i = 0; i < 3; i++) {
-  //   stockData.push([]);
-  //   stockData[i] = prices[1];
-  // }
-  maps.greenhouse = newMap;
+
+  maps.base = baseMap;
+  maps.shop = shopMap;
   maps.data = mapData;
 }
 
@@ -117,7 +133,7 @@ function centerMap() {
 }
 
 function mousePressed() {
-  // Mouse Pos
+  // Mouse Position
   let x = floor((mouseX - xOffset) / cellSize);
   let y = floor((mouseY - yOffset) / cellSize);
 
@@ -126,11 +142,11 @@ function mousePressed() {
     player.wallet += prices[maps.data[x][y].state][1];
     maps.data[x][y] = 2;
     inventory[maps.data[x][y].state] = 1; 
-    maps.greenhouse[x][y] = color(random(220, 230));
+    maps.base[x][y] = color(random(220, 230));
   }
   if (maps.data[x][y] === -3 && player.wallet >= prices[currentPlant][0]) {
     maps.data[x][y] = new Plant(currentPlant, plants[currentPlant]);
-    maps.greenhouse[x][y] = color(plants[currentPlant][0]);
+    maps.base[x][y] = color(plants[currentPlant][0]);
     player.wallet -= prices[currentPlant][0];
   }
 }
@@ -143,7 +159,7 @@ function keyPressed() {
         if (maps.data[x][y].growth === 4) {
           inventory[maps.data[x][y].state] += 1;
           maps.data[x][y] = -3;
-          maps.greenhouse[x][y] = color(random(220, 230));
+          maps.base[x][y] = color(random(220, 230));
         }
       }
     }
@@ -167,13 +183,18 @@ function keyPressed() {
   currentPlant = currentPlant % 3;
 }
 
-// Loads the map
+// Loads Map
 function drawMap() {
   background(0);
   noStroke();
   for (let x = 0; x < GRID_SIZE; x++) {
     for (let y = 0; y < GRID_SIZE; y++) {
-      fill(maps.greenhouse[x][y]);
+      if (area === "base") {
+        fill(maps.base[x][y]);
+      }
+      if (area === "shop") {
+        fill(maps.shop[x][y]);
+      }
       rect(x * cellSize + xOffset, y * cellSize + yOffset, cellSize, cellSize);
     }
   }
@@ -185,7 +206,7 @@ function drawPlants() {
     for (let y = 0; y < GRID_SIZE; y++) {
       if (maps.data[x][y].state >= 0 && random() < 0.05) {
         maps.data[x][y].update();
-        maps.greenhouse[x][y] = color(maps.data[x][y].stages[maps.data[x][y].growth]);
+        maps.base[x][y] = color(maps.data[x][y].stages[maps.data[x][y].growth]);
       }
     }
   }
@@ -276,19 +297,28 @@ class Player {
   // Player Movement
   update() {
     if (keyIsDown(68)) {
-      this.x += 0.1 * cellSize;
+      this.x += 0.1 * cellSize;  
     }
     else if (keyIsDown(65)) {
       this.x -= 0.1 * cellSize;
     }
     else if (keyIsDown(83)) {
       this.y += 0.1 * cellSize;
+      if (area === "base" && this.y > 62 && this.x > 29 && this.x < 34) {
+        area = "shop";
+        this.y = 1;
+      }
     }
     else if (keyIsDown(87)) {
       this.y -= 0.1 * cellSize;
-    }   
+      if (area === "shop" && this.y < 2 && this.x > 29 && this.x < 34) {
+        area = "base";
+        this.y = 63;
+      }
+    }
+ 
     this.x = constrain(this.x, 1, 63);
-    this.y = constrain(this.y, 1, 53);
+    this.y = constrain(this.y, 1, 62);
   }
 
   // Player Character
