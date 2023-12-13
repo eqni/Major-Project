@@ -14,52 +14,53 @@
 
 // Variables
 const GRID_SIZE = 64;
-
+let xOffset;
+let yOffset;
+let cellSize;
+let font;
+let prices = [[100, 250], [500, 1000], [2000, 5000]];
+let plants = [[[136, 82, 127], [159, 135, 175], [188, 231, 253], [169, 237, 190], [80, 132, 132]], [[54, 60, 60], [65, 193, 241], [52, 110, 129], [152, 251, 152], [27, 131, 102]], [[54, 60, 60], [71, 125, 139], [60, 155, 162], [105, 162, 151], [48, 105, 100]]];
+let selectedSeed = 0;
+let player;
+let start = false;
+let inventory = [0, 0, 0];
+let area = "base";
 let maps = {
   base: [],
   shop: [],
   data: []
 };
 
-// Variables
-let cellSize;
-let xOffset;
-let yOffset;
-let font;
-let prices = [[100, 250], [500, 1000], [2000, 5000]];
-let plants = [[[136, 82, 127], [159, 135, 175], [188, 231, 253], [169, 237, 190], [80, 132, 132]], [[54, 60, 60], [65, 193, 241], [52, 110, 129], [152, 251, 152], [27, 131, 102]], [[54, 60, 60], [71, 125, 139], [60, 155, 162], [105, 162, 151], [48, 105, 100]]];
-let currentPlant = 0;
-let player;
-let started = false;
-let inventory = [0, 0, 0];
-let area = "base";
-
-// let stockData = [];
-
 // Sounds
+let sounds = new Map();
 let switchPlant;
 
 
 // Loads Font
 function preload() {
   font = loadFont("assets/Pixel Font.TTF");
-  switchPlant = loadSound("assets/switch plant.mp3")
+  // for (let i in "sounds") {
+  //   sounds.set(someMap)
+  // }
+  switchPlant = loadSound("sounds/switch plant.mp3")
 }
 
 // Builds Map, Sets up Text Scale
 function setup() {
   createCanvas(windowWidth, windowHeight);
+  textFont(font);
   background(0);
   createMap();
-  centerMap();
-  textFont(font);
-  player = new Player(GRID_SIZE / 2, GRID_SIZE / 2, 100);
+  yOffset = constrain((windowHeight - windowWidth) / 2, 0, windowHeight);
+  xOffset = constrain((windowWidth - windowHeight) / 2, 0, windowWidth);
   cellSize = min(windowHeight, windowWidth) / GRID_SIZE;
+
+  player = new Player(GRID_SIZE / 2, GRID_SIZE / 2, 100);
 }
 
 // Simulates the game
 function draw() {
-  if (started) {
+  if (start) {
     drawMap(GRID_SIZE, GRID_SIZE);
     drawPlants();
     drawUI();
@@ -70,7 +71,7 @@ function draw() {
 
 // Activates the game code
 function startGame() {
-  started = true;
+  start = true;
   player.wallet = 100;
 }
 
@@ -118,6 +119,19 @@ function createMap() {
       else if (x % 2 === 1) {
         shopMap[x][y] = color(159, 89, 39);
       }
+      if (y === 56) {
+        shopMap[x][y] = color(0);
+        mapData[x][y] = -1
+      }
+      if (y === 60 && x % 8 < 3) {
+        shopMap[x][y] = color(random(245, 255), random(220, 240), random(0, 25));
+      }
+      else if (y === 57 || y === 63) {
+        shopMap[x][y] = color(random(35, 50));
+      }
+      else if (y > 57) {
+        shopMap[x][y] = color(random(95, 115));
+      }
     }
   }
 
@@ -126,34 +140,27 @@ function createMap() {
   maps.data = mapData;
 }
 
-// Centers the map
-function centerMap() {
-  yOffset = constrain((windowHeight - windowWidth) / 2, 0, windowHeight);
-  xOffset = constrain((windowWidth - windowHeight) / 2, 0, windowWidth);
-}
-
 function mousePressed() {
   // Mouse Position
   let x = floor((mouseX - xOffset) / cellSize);
   let y = floor((mouseY - yOffset) / cellSize);
 
-  // Plants and collects weeds
+  // Collects & Plants Seeds
   if (maps.data[x][y].growth === 4) {
-    player.wallet += prices[maps.data[x][y].state][1];
-    maps.data[x][y] = 2;
-    inventory[maps.data[x][y].state] = 1; 
+    inventory[maps.data[x][y].state] += 1;
+    maps.data[x][y] = -3;
     maps.base[x][y] = color(random(220, 230));
   }
-  if (maps.data[x][y] === -3 && player.wallet >= prices[currentPlant][0]) {
-    maps.data[x][y] = new Plant(currentPlant, plants[currentPlant]);
-    maps.base[x][y] = color(plants[currentPlant][0]);
-    player.wallet -= prices[currentPlant][0];
+  else if (maps.data[x][y] === -3 && player.wallet >= prices[selectedSeed][0]) {
+    maps.data[x][y] = new Plant(selectedSeed, plants[selectedSeed]);
+    maps.base[x][y] = color(plants[selectedSeed][0]);
+    player.wallet -= prices[selectedSeed][0];
   }
 }
 
 function keyPressed() {
   // Collects Plants
-  if (keyCode === 69) {
+  if (keyCode === 69 && area === "base") {
     for (let x = 0; x < GRID_SIZE; x++) {
       for (let y = 0; y < GRID_SIZE; y++) {
         if (maps.data[x][y].growth === 4) {
@@ -166,7 +173,7 @@ function keyPressed() {
   }
 
   // Sells Plants
-  if (keyCode === 81) {
+  if (keyCode === 81 && area === "shop") {
     for (let i = 0; i < inventory.length; i++) {
       for (let j = 0; j < inventory[i]; j++) {
         player.wallet += prices[i][1];
@@ -177,10 +184,10 @@ function keyPressed() {
 
   // Changes Seed
   if (keyCode === 70) {
-    currentPlant++;
+    selectedSeed++;
     switchPlant.play();
   }
-  currentPlant = currentPlant % 3;
+  selectedSeed = selectedSeed % 3;
 }
 
 // Loads Map
@@ -200,7 +207,7 @@ function drawMap() {
   }
 }
 
-// Simulates plant growth
+// Plant Growth
 function drawPlants() {
   for (let x = 0; x < GRID_SIZE; x++) {
     for (let y = 0; y < GRID_SIZE; y++) {
@@ -212,7 +219,7 @@ function drawPlants() {
   }
 }
 
-// Loads the UI
+// Loads UI
 function drawUI() {
   let boxStroke = [color(72, 42, 29), color(66, 95, 6), color(28, 53, 45)];
   let boxFill = [color(220, 170, 112), color(200, 223, 170), color(41, 85, 38)]
@@ -239,8 +246,8 @@ function drawUI() {
   rect(0.5 * cellSize, 0.5 * cellSize, xOffset - cellSize, 5 * cellSize);
 
   // Plant Box
-  stroke(boxStroke[currentPlant]);
-  fill(boxFill[currentPlant]);
+  stroke(boxStroke[selectedSeed]);
+  fill(boxFill[selectedSeed]);
   rect(0.5 * cellSize, 6.5 * cellSize, 5 * cellSize, 5 * cellSize);
   rect(5.5 * cellSize, 6.5 * cellSize, xOffset - 6 * cellSize, 5 * cellSize);
   rect(0.5 * cellSize, 11.5 * cellSize, xOffset - cellSize, 20 * cellSize);
@@ -255,22 +262,22 @@ function drawUI() {
 
   // Plant Text
   textSize(3.75 * cellSize);
-  fill(textStroke[currentPlant]);
-  text(char[currentPlant], 1.5 * cellSize, 10.7 * cellSize);
-  fill(textFill[currentPlant]);
-  text(char[currentPlant], 1.3 * cellSize, 10.5 * cellSize);
+  fill(textStroke[selectedSeed]);
+  text(char[selectedSeed], 1.5 * cellSize, 10.7 * cellSize);
+  fill(textFill[selectedSeed]);
+  text(char[selectedSeed], 1.3 * cellSize, 10.5 * cellSize);
 
   textSize(2.75 * cellSize);
-  fill(textStroke[currentPlant]);
-  text(name[currentPlant], 6.7 * cellSize, 10.2 * cellSize);
-  fill(textFill[currentPlant]);
-  text(name[currentPlant], 6.5 * cellSize, 10 * cellSize);
+  fill(textStroke[selectedSeed]);
+  text(name[selectedSeed], 6.7 * cellSize, 10.2 * cellSize);
+  fill(textFill[selectedSeed]);
+  text(name[selectedSeed], 6.5 * cellSize, 10 * cellSize);
 
   textSize(2 * cellSize);
-  fill(textStroke[currentPlant]);
-  text(desc[currentPlant], 1.7 * cellSize, 14.45 * cellSize, xOffset - cellSize);
-  fill(textFill[currentPlant]);
-  text(desc[currentPlant], 1.5 * cellSize, 14.25 * cellSize, xOffset - cellSize);
+  fill(textStroke[selectedSeed]);
+  text(desc[selectedSeed], 1.7 * cellSize, 14.45 * cellSize, xOffset - cellSize);
+  fill(textFill[selectedSeed]);
+  text(desc[selectedSeed], 1.5 * cellSize, 14.25 * cellSize, xOffset - cellSize);
 }
 
 class Plant {
@@ -316,9 +323,16 @@ class Player {
         this.y = 63;
       }
     }
- 
-    this.x = constrain(this.x, 1, 63);
-    this.y = constrain(this.y, 1, 62);
+
+    // Collision
+    if (area === "base") {
+      this.x = constrain(this.x, 1, 63);
+      this.y = constrain(this.y, 1, 62);
+    }
+    if (area === "shop") {
+      this.x = constrain(this.x, 1, 63);
+      this.y = constrain(this.y, 2, 55);
+    }
   }
 
   // Player Character
