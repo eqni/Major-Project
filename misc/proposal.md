@@ -6,10 +6,10 @@ Greenhouse Simulator. The player grows plants in their greenhouse. Sells plants 
 
 ### Needs to have List
 
-- Start screen
+- Start Screen
 - Tutorial 
 - Money Counter
-- Plant State Description
+- Plant Description
 - Controllable Character 
 - Greenhouse Level [Where you grow plants]
 - Shop Level [Where you sell plants]
@@ -18,9 +18,9 @@ Greenhouse Simulator. The player grows plants in their greenhouse. Sells plants 
 
 ### Nice to have List
 
-- Market Fluctuations
-- Character Models
-- Stock Market Graph
-- Customizable Character
+- Inventory
+- Customers
+- Seasons [Plants grow & sell better in fitting weather]
+- Cashier UI [Buy Seeds + Sell Plants]
 - Starting Classes
 - Reputation Points
