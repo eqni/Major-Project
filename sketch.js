@@ -58,10 +58,9 @@ function setup() {
   player = new Player(GRID_SIZE / 2, GRID_SIZE / 2, 100);
 }
 
-// Simulates the game
 function draw() {
   if (start) {
-    drawMap(GRID_SIZE, GRID_SIZE);
+    drawMap();
     drawPlants();
     drawUI();
     player.update();
@@ -69,7 +68,6 @@ function draw() {
   }
 }
 
-// Activates the game code
 function startGame() {
   start = true;
   player.wallet = 100;
@@ -132,6 +130,10 @@ function createMap() {
       else if (y > 57) {
         shopMap[x][y] = color(random(95, 115));
       }
+      if (y > 0 && y < 7 && x < 6) {
+        shopMap[x][y] = color(45, 186, 143);
+        mapData[x][y] = -4;
+      }
     }
   }
 
@@ -173,7 +175,7 @@ function keyPressed() {
   }
 
   // Sells Plants
-  if (keyCode === 81 && area === "shop") {
+  if (keyCode === 81 && area === "shop" && maps.data[player.x][player.y] === -4) {
     for (let i = 0; i < inventory.length; i++) {
       for (let j = 0; j < inventory[i]; j++) {
         player.wallet += prices[i][1];
@@ -190,10 +192,8 @@ function keyPressed() {
   selectedSeed = selectedSeed % 3;
 }
 
-// Loads Map
 function drawMap() {
-  background(0);
-  noStroke();
+  // Draw Map
   for (let x = 0; x < GRID_SIZE; x++) {
     for (let y = 0; y < GRID_SIZE; y++) {
       if (area === "base") {
@@ -207,11 +207,11 @@ function drawMap() {
   }
 }
 
-// Plant Growth
 function drawPlants() {
+  // Plant Growth
   for (let x = 0; x < GRID_SIZE; x++) {
     for (let y = 0; y < GRID_SIZE; y++) {
-      if (maps.data[x][y].state >= 0 && random() < 0.05) {
+      if (maps.data[x][y].state >= 0 && random() < 1 / prices[maps.data[x][y].state][0] * (maps.data[x][y].state + 1)) {
         maps.data[x][y].update();
         maps.base[x][y] = color(maps.data[x][y].stages[maps.data[x][y].growth]);
       }
@@ -219,7 +219,6 @@ function drawPlants() {
   }
 }
 
-// Loads UI
 function drawUI() {
   let boxStroke = [color(72, 42, 29), color(66, 95, 6), color(28, 53, 45)];
   let boxFill = [color(220, 170, 112), color(200, 223, 170), color(41, 85, 38)]
@@ -304,20 +303,20 @@ class Player {
   // Player Movement
   update() {
     if (keyIsDown(68)) {
-      this.x += 0.1 * cellSize;  
+      this.x += 1;  
     }
     else if (keyIsDown(65)) {
-      this.x -= 0.1 * cellSize;
+      this.x -= 1;
     }
     else if (keyIsDown(83)) {
-      this.y += 0.1 * cellSize;
+      this.y += 1;
       if (area === "base" && this.y > 62 && this.x > 29 && this.x < 34) {
         area = "shop";
         this.y = 1;
       }
     }
     else if (keyIsDown(87)) {
-      this.y -= 0.1 * cellSize;
+      this.y -= 1;
       if (area === "shop" && this.y < 2 && this.x > 29 && this.x < 34) {
         area = "base";
         this.y = 63;
