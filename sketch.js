@@ -1,15 +1,15 @@
-///////////////////////////////////////////////////////////////////////////////////////////////
-// Grenehoreh
+//////////////////////////////////////////////////////////////////////////////////////////////////
+// Grene Horeh
 // Andrew Chen
 // 11/21/2023
 //
-///////////////////////////////////////////////////////////////////////////////////////////////
-// Game: An Upstart Gardener takes over an abandoned base to begin their produce empire!
+//////////////////////////////////////////////////////////////////////////////////////////////////
+// Game: An Upstart Gardener, Grene, takes over his Aunt's store to begin his own produce empire!
 //
 // Instructions: WASD Movement. Mouse Click to plant seeds and harvest plants. Spacebar harvests
 // all plants. Plants cost money, but make back money when they are harvested. Arrow Keys Cycle
 // through different plants.
-///////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 // Variables
@@ -20,15 +20,16 @@ let cellSize;
 let font;
 let prices = [[100, 250], [500, 1000], [2000, 5000]];
 let plants = [[[136, 82, 127], [159, 135, 175], [188, 231, 253], [169, 237, 190], [80, 132, 132]], [[54, 60, 60], [65, 193, 241], [52, 110, 129], [152, 251, 152], [27, 131, 102]], [[54, 60, 60], [71, 125, 139], [60, 155, 162], [105, 162, 151], [48, 105, 100]]];
+let inventory = [0, 0, 0];
+let pots = [];
 let selectedSeed = 0;
 let player;
 let start = false;
-let inventory = [0, 0, 0];
 let area = "base";
 let maps = {
   base: [],
   shop: [],
-  data: []
+  data: [],
 };
 
 // Sounds
@@ -36,16 +37,11 @@ let sounds = new Map();
 let switchPlant;
 
 
-// Loads Font
 function preload() {
   font = loadFont("assets/Pixel Font.TTF");
-  // for (let i in "sounds") {
-  //   sounds.set(someMap)
-  // }
   switchPlant = loadSound("sounds/switch plant.mp3")
 }
 
-// Builds Map, Sets up Text Scale
 function setup() {
   createCanvas(windowWidth, windowHeight);
   textFont(font);
@@ -56,6 +52,7 @@ function setup() {
   cellSize = min(windowHeight, windowWidth) / GRID_SIZE;
 
   player = new Player(GRID_SIZE / 2, GRID_SIZE / 2, 100);
+  document.addEventListener("contextmenu", event => event.preventDefault())
 }
 
 function draw() {
@@ -73,12 +70,12 @@ function startGame() {
   player.wallet = 100;
 }
 
-// Creates the map
 function createMap() {
   let baseMap = [];
   let shopMap = [];
   let mapData = [];
 
+  // Generates Both Game Maps + Data
   for (let x = 0; x < GRID_SIZE; x++) {
     baseMap.push([]);
     shopMap.push([]);
@@ -91,7 +88,6 @@ function createMap() {
       // Base Map
       if (y === 63 && x < 35 && x > 28) {
         baseMap[x][y] = color(120, 168, 134);
-        mapData[x][y] = -2;
       }
       else if (y === 63) {
         baseMap[x][y] = color(0);
@@ -105,11 +101,9 @@ function createMap() {
       // Shop Map
       if (y === 0 && x < 35 && x > 28) {
         shopMap[x][y] = color(120, 168, 134);
-        mapData[x][y] = -2;
       }
       else if (y === 0) {
         shopMap[x][y] = color(0);
-        mapData[x][y] = -1;
       }
       else if (x % 2 === 0) {
         shopMap[x][y] = color(139, 69, 19);
@@ -132,7 +126,6 @@ function createMap() {
       }
       if (y > 0 && y < 7 && x < 6) {
         shopMap[x][y] = color(45, 186, 143);
-        mapData[x][y] = -4;
       }
     }
   }
@@ -147,17 +140,49 @@ function mousePressed() {
   let x = floor((mouseX - xOffset) / cellSize);
   let y = floor((mouseY - yOffset) / cellSize);
 
+
   // Collects & Plants Seeds
-  if (maps.data[x][y].growth === 4) {
-    inventory[maps.data[x][y].state] += 1;
-    maps.data[x][y] = -3;
-    maps.base[x][y] = color(random(220, 230));
+  if (mouseButton === LEFT) {
+    if (maps.data[x][y].growth === 4) {
+      inventory[maps.data[x][y].state] += 1;
+      maps.data[x][y] = -3;
+      maps.base[x][y] = color(random(220, 230));
+    }
+    else if (maps.data[x][y] === -3 && player.wallet >= prices[selectedSeed][0]) {
+      maps.data[x][y] = new Plant(selectedSeed, plants[selectedSeed]);
+      maps.base[x][y] = color(plants[selectedSeed][0]);
+      player.wallet -= prices[selectedSeed][0];
+    }
   }
-  else if (maps.data[x][y] === -3 && player.wallet >= prices[selectedSeed][0]) {
-    maps.data[x][y] = new Plant(selectedSeed, plants[selectedSeed]);
-    maps.base[x][y] = color(plants[selectedSeed][0]);
-    player.wallet -= prices[selectedSeed][0];
+
+  // Places Pot
+  if (mouseButton === RIGHT) {
+    let checkPot = [(x - 1, y), (x, y - 1), (x + 1, y), (x, y + 1)];
+    if (!pots.some(r=> checkPot.includes(r))) {
+      for (let i = 0; i < 4; i++) {
+        pots.push(checkPot[i]);
+        //maps.baseMap[checkPot[i][0]][checkPot[i][1]] = color(252, 92, 71);
+        console.log(checkPot[i][0], checkPot[i][1]);
+      }
+      console.log(true);
+      console.log(x - 1, y);
+    }
+    else {
+      console.log(false);
+    }
+
+    // if (!checkPot.some(r=> pots.includes(r))) {
+    //   maps.baseMap[x - 1][y] = color(252, 92, 71);
+    //   maps.baseMap[x][y - 1] = color(252, 92, 71);
+    //   maps.baseMap[x + 1][y] = color(252, 92, 71);
+    //   maps.baseMap[x][y + 1] = color(252, 92, 71);
+    //   maps.data[x - 1][y] = -2;
+    //   maps.data[x][y - 1] = -2;
+    //   maps.data[x + 1][y] = -2;
+    //   maps.data[x][y + 1] = -2;
+    // }
   }
+
 }
 
 function keyPressed() {
@@ -175,7 +200,7 @@ function keyPressed() {
   }
 
   // Sells Plants
-  if (keyCode === 81 && area === "shop" && maps.data[player.x][player.y] === -4) {
+  if (keyCode === 81 && area === "shop" && player.y < 7 && player.x < 6) {
     for (let i = 0; i < inventory.length; i++) {
       for (let j = 0; j < inventory[i]; j++) {
         player.wallet += prices[i][1];
@@ -340,5 +365,15 @@ class Player {
     rect((this.x - 0.75) * cellSize + xOffset, (this.y - 0.75) * cellSize + yOffset, cellSize * 1.5, cellSize * 1.5);
     fill(255);
     rect((this.x - 0.5) * cellSize + xOffset, (this.y - 0.5) * cellSize + yOffset, cellSize * 1, cellSize * 1);
+  }
+}
+
+class Pot {
+  constructor() {
+    this.hp = 3;
+  }
+
+  used() {
+    this.hp--;
   }
 }
