@@ -157,17 +157,16 @@ function mousePressed() {
 
   // Places Pot
   if (mouseButton === RIGHT) {
-    let checkPot = [(x - 1, y), (x, y - 1), (x + 1, y), (x, y + 1)];
+    let checkPot = [[x - 1, y], [x, y - 1], [x + 1, y], [x, y + 1]];
     if (!pots.some(r=> checkPot.includes(r))) {
       for (let i = 0; i < 4; i++) {
-        pots.push(checkPot[i]);
+        pots.push(checkPot[i][0], checkPot[i][1]);
         //maps.baseMap[checkPot[i][0]][checkPot[i][1]] = color(252, 92, 71);
         console.log(checkPot[i][0], checkPot[i][1]);
       }
-      console.log(true);
-      console.log(x - 1, y);
     }
     else {
+      console.log(pots);
       console.log(false);
     }
 
