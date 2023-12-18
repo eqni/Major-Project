@@ -158,27 +158,32 @@ function mousePressed() {
   // Places Pot
   if (mouseButton === RIGHT) {
     let checkPot = [[x - 1, y], [x, y - 1], [x + 1, y], [x, y + 1]];
-    if (!pots.some(r=> checkPot.includes(r))) {
-      for (let i = 0; i < 4; i++) {
-        pots.push(checkPot[i][0], checkPot[i][1]);
-        //maps.baseMap[checkPot[i][0]][checkPot[i][1]] = color(252, 92, 71);
-        console.log(checkPot[i][0], checkPot[i][1]);
+    let shareValue = false;
+    for (let j = 0; j < pots.length; j++) {
+      for (let k = 0; k < 4; k++) {
+        if (shareValue === false) {
+          shareValue = checkPot[k].some(p => pots[j].includes(p));
+        }
       }
     }
-    else {
-      console.log(pots);
-      console.log(false);
+    if (shareValue === false) {
+      for (let i = 0; i < 4; i++) {
+        pots.push([checkPot[i][0], checkPot[i][1]]);
+        maps.base[checkPot[i][0]][checkPot[i][1]] = color(252, 92, 71);
+      }
     }
+    console.log(checkPot);
+
 
     // if (!checkPot.some(r=> pots.includes(r))) {
-    //   maps.baseMap[x - 1][y] = color(252, 92, 71);
-    //   maps.baseMap[x][y - 1] = color(252, 92, 71);
-    //   maps.baseMap[x + 1][y] = color(252, 92, 71);
-    //   maps.baseMap[x][y + 1] = color(252, 92, 71);
-    //   maps.data[x - 1][y] = -2;
-    //   maps.data[x][y - 1] = -2;
-    //   maps.data[x + 1][y] = -2;
-    //   maps.data[x][y + 1] = -2;
+      // maps.baseMap[x - 1][y] = color(252, 92, 71);
+      // maps.baseMap[x][y - 1] = color(252, 92, 71);
+      // maps.baseMap[x + 1][y] = color(252, 92, 71);
+      // maps.baseMap[x][y + 1] = color(252, 92, 71);
+      // maps.data[x - 1][y] = -2;
+      // maps.data[x][y - 1] = -2;
+      // maps.data[x + 1][y] = -2;
+      // maps.data[x][y + 1] = -2;
     // }
   }
 
