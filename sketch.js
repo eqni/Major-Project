@@ -145,10 +145,10 @@ function mousePressed() {
   if (mouseButton === LEFT) {
     if (maps.data[x][y].growth === 4) {
       inventory[maps.data[x][y].state] += 1;
-      maps.data[x][y] = -3;
-      maps.base[x][y] = color(random(220, 230));
+      maps.data[x][y] = -4;
+      maps.base[x][y] = color(252, 139, 109);
     }
-    else if (maps.data[x][y] === -3 && player.wallet >= prices[selectedSeed][0]) {
+    else if (maps.data[x][y] === -4 && player.wallet >= prices[selectedSeed][0]) {
       maps.data[x][y] = new Plant(selectedSeed, plants[selectedSeed]);
       maps.base[x][y] = color(plants[selectedSeed][0]);
       player.wallet -= prices[selectedSeed][0];
@@ -157,34 +157,27 @@ function mousePressed() {
 
   // Places Pot
   if (mouseButton === RIGHT) {
-    let checkPot = [[x - 1, y], [x, y - 1], [x + 1, y], [x, y + 1]];
+    let checkPot = [[x - 1, y], [x, y - 1], [x + 1, y], [x, y + 1], [x, y]];
     let shareValue = false;
-    for (let j = 0; j < pots.length; j++) {
-      for (let k = 0; k < 4; k++) {
-        if (shareValue === false) {
-          shareValue = checkPot[k].some(p => pots[j].includes(p));
+    for (let i = 0; i < pots.length; i++) {
+      for (let j = 0; j < checkPot.length; j++) {
+        if (pots[i][0] === checkPot[j][0] && pots[i][1] === checkPot[j][1]) {
+          shareValue = true;
         }
+        console.log(pots[i], checkPot[j]);
+        console.log(pots[i][0] === checkPot[j][0] && pots[i][1] === checkPot[j][1]);
       }
     }
     if (shareValue === false) {
       for (let i = 0; i < 4; i++) {
         pots.push([checkPot[i][0], checkPot[i][1]]);
         maps.base[checkPot[i][0]][checkPot[i][1]] = color(252, 92, 71);
+        maps.data[checkPot[i][0]][checkPot[i][1]] = -1;
       }
+      pots.push[x, y];
+      maps.base[x][y] = color(252, 139, 109);
+      maps.data[x][y] = -4;
     }
-    console.log(checkPot);
-
-
-    // if (!checkPot.some(r=> pots.includes(r))) {
-      // maps.baseMap[x - 1][y] = color(252, 92, 71);
-      // maps.baseMap[x][y - 1] = color(252, 92, 71);
-      // maps.baseMap[x + 1][y] = color(252, 92, 71);
-      // maps.baseMap[x][y + 1] = color(252, 92, 71);
-      // maps.data[x - 1][y] = -2;
-      // maps.data[x][y - 1] = -2;
-      // maps.data[x + 1][y] = -2;
-      // maps.data[x][y + 1] = -2;
-    // }
   }
 
 }
@@ -196,8 +189,8 @@ function keyPressed() {
       for (let y = 0; y < GRID_SIZE; y++) {
         if (maps.data[x][y].growth === 4) {
           inventory[maps.data[x][y].state] += 1;
-          maps.data[x][y] = -3;
-          maps.base[x][y] = color(random(220, 230));
+          maps.data[x][y] = -4;
+          maps.base[x][y] = color(252, 139, 109);
         }
       }
     }
@@ -240,7 +233,7 @@ function drawPlants() {
   // Plant Growth
   for (let x = 0; x < GRID_SIZE; x++) {
     for (let y = 0; y < GRID_SIZE; y++) {
-      if (maps.data[x][y].state >= 0 && random() < 1 / prices[maps.data[x][y].state][0] * (maps.data[x][y].state + 1)) {
+      if (maps.data[x][y].state >= 0 && random() < 4 / prices[maps.data[x][y].state][0] * (maps.data[x][y].state + 1)) {
         maps.data[x][y].update();
         maps.base[x][y] = color(maps.data[x][y].stages[maps.data[x][y].growth]);
       }
