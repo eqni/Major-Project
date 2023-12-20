@@ -26,6 +26,7 @@ let selectedSeed = 0;
 let player;
 let start = false;
 let area = "base";
+let theme = 0;
 let maps = {
   base: [],
   shop: [],
@@ -94,8 +95,7 @@ function createMap() {
         mapData[x][y] = -1;
       }
       else {
-        baseMap[x][y] = color(random(220, 230));
-        mapData[x][y] = -3;
+        mapData[x][y] = [-3, color(211, 212, 218)];
       }
 
       // Shop Map
@@ -159,13 +159,13 @@ function mousePressed() {
   if (mouseButton === RIGHT) {
     let checkPot = [[x - 1, y], [x, y - 1], [x + 1, y], [x, y + 1], [x, y]];
     let shareValue = false;
-    for (let i = 0; i < pots.length; i++) {
-      for (let j = 0; j < checkPot.length; j++) {
-        if (pots[i][0] === checkPot[j][0] && pots[i][1] === checkPot[j][1]) {
+    for (let i = 0; i < checkPot.length; i++) {
+      for (let j = 0; j < pots.length; j++) {
+        if (pots[j][0] === checkPot[i][0] && pots[j][1] === checkPot[i][1]) {
           shareValue = true;
         }
-        console.log(pots[i], checkPot[j]);
-        console.log(pots[i][0] === checkPot[j][0] && pots[i][1] === checkPot[j][1]);
+        console.log(pots[j], checkPot[i]);
+        console.log(pots[j][0] === checkPot[i][0] && pots[j][1] === checkPot[i][1]);
       }
     }
     if (shareValue === false) {
@@ -219,13 +219,18 @@ function drawMap() {
   for (let x = 0; x < GRID_SIZE; x++) {
     for (let y = 0; y < GRID_SIZE; y++) {
       if (area === "base") {
-        fill(maps.base[x][y]);
+        if (maps.data[x][y] !== -3) {
+          fill(maps.base[x][y])
+        }
+        else {
+          fill(maps.data[x][y][theme + 1]);
+        }
       }
       if (area === "shop") {
-        fill(maps.shop[x][y]);
+        fill(maps.shop[x][y]); 
       }
-      rect(x * cellSize + xOffset, y * cellSize + yOffset, cellSize, cellSize);
     }
+    rect(x * cellSize + xOffset, y * cellSize + yOffset, cellSize, cellSize);
   }
 }
 
