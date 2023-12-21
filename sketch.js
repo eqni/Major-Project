@@ -22,7 +22,7 @@ let prices = [[100, 250], [500, 1000], [2000, 5000]];
 let plants = [[[136, 82, 127], [159, 135, 175], [188, 231, 253], [169, 237, 190], [80, 132, 132]], [[54, 60, 60], [65, 193, 241], [52, 110, 129], [152, 251, 152], [27, 131, 102]], [[54, 60, 60], [71, 125, 139], [60, 155, 162], [105, 162, 151], [48, 105, 100]]];
 let inventory = [0, 0, 0];
 let pots = [];
-let selectedSeed = 0;
+let seed = 0;
 let player;
 let start = false;
 let area = "base";
@@ -88,14 +88,13 @@ function createMap() {
 
       // Base Map
       if (y === 63 && x < 35 && x > 28) {
-        baseMap[x][y] = color(120, 168, 134);
+        baseMap[x][y] = new Grid(0);
       }
       else if (y === 63) {
-        baseMap[x][y] = color(0);
-        mapData[x][y] = -1;
+        baseMap[x][y] = new Grid(2)
       }
       else {
-        mapData[x][y] = [-3, color(211, 212, 218)];
+        baseMap[x][y] = new Grid(1);
       }
 
       // Shop Map
@@ -140,22 +139,22 @@ function mousePressed() {
   let x = floor((mouseX - xOffset) / cellSize);
   let y = floor((mouseY - yOffset) / cellSize);
 
-
-  // Collects & Plants Seeds
   if (mouseButton === LEFT) {
-    if (maps.data[x][y].growth === 4) {
-      inventory[maps.data[x][y].state] += 1;
-      maps.data[x][y] = -4;
-      maps.base[x][y] = color(252, 139, 109);
+    // Collect Plant
+    if (maps.base[x][y].index === 3) {
+      if (maps.base[x][y].growth === 4) {
+        inventory[maps.base[x][y].state] += 1;
+        maps.base[x][y] = new Grid(5);
+      }
     }
-    else if (maps.data[x][y] === -4 && player.wallet >= prices[selectedSeed][0]) {
-      maps.data[x][y] = new Plant(selectedSeed, plants[selectedSeed]);
-      maps.base[x][y] = color(plants[selectedSeed][0]);
-      player.wallet -= prices[selectedSeed][0];
+    // Sow Seed
+    if (maps.base[x][y].index === 5 && player.wallet >= prices[seed][0]) {
+      maps.base[x][y] = new Plant(seed);
+      player.wallet -= prices[seed][0];
     }
   }
 
-  // Places Pot
+  // Place Pot
   if (mouseButton === RIGHT) {
     let checkPot = [[x - 1, y], [x, y - 1], [x + 1, y], [x, y + 1], [x, y]];
     let shareValue = false;
@@ -164,39 +163,34 @@ function mousePressed() {
         if (pots[j][0] === checkPot[i][0] && pots[j][1] === checkPot[i][1]) {
           shareValue = true;
         }
-        console.log(pots[j], checkPot[i]);
-        console.log(pots[j][0] === checkPot[i][0] && pots[j][1] === checkPot[i][1]);
       }
     }
     if (shareValue === false) {
       for (let i = 0; i < 4; i++) {
         pots.push([checkPot[i][0], checkPot[i][1]]);
-        maps.base[checkPot[i][0]][checkPot[i][1]] = color(252, 92, 71);
-        maps.data[checkPot[i][0]][checkPot[i][1]] = -1;
+        maps.base[checkPot[i][0]][checkPot[i][1]] = new Pot(4);
       }
       pots.push[x, y];
-      maps.base[x][y] = color(252, 139, 109);
-      maps.data[x][y] = -4;
+      maps.base[x][y].index = 5;
     }
   }
 
 }
 
 function keyPressed() {
-  // Collects Plants
+  // Collect Plants
   if (keyCode === 69 && area === "base") {
     for (let x = 0; x < GRID_SIZE; x++) {
       for (let y = 0; y < GRID_SIZE; y++) {
-        if (maps.data[x][y].growth === 4) {
-          inventory[maps.data[x][y].state] += 1;
-          maps.data[x][y] = -4;
-          maps.base[x][y] = color(252, 139, 109);
+        if (maps.base[x][y].growth === 4) {
+          inventory[maps.base[x][y].state] += 1;
+          maps.base[x][y] = new Grid(5);
         }
       }
     }
   }
 
-  // Sells Plants
+  // Sell Plants
   if (keyCode === 81 && area === "shop" && player.y < 7 && player.x < 6) {
     for (let i = 0; i < inventory.length; i++) {
       for (let j = 0; j < inventory[i]; j++) {
@@ -208,10 +202,10 @@ function keyPressed() {
 
   // Changes Seed
   if (keyCode === 70) {
-    selectedSeed++;
+    seed++
     switchPlant.play();
   }
-  selectedSeed = selectedSeed % 3;
+  seed = seed % 3;
 }
 
 function drawMap() {
@@ -219,18 +213,13 @@ function drawMap() {
   for (let x = 0; x < GRID_SIZE; x++) {
     for (let y = 0; y < GRID_SIZE; y++) {
       if (area === "base") {
-        if (maps.data[x][y] !== -3) {
-          fill(maps.base[x][y])
-        }
-        else {
-          fill(maps.data[x][y][theme + 1]);
-        }
+        maps.base[x][y].display();
       }
       if (area === "shop") {
         fill(maps.shop[x][y]); 
       }
+      rect(x * cellSize + xOffset, y * cellSize + yOffset, cellSize, cellSize);
     }
-    rect(x * cellSize + xOffset, y * cellSize + yOffset, cellSize, cellSize);
   }
 }
 
@@ -238,9 +227,8 @@ function drawPlants() {
   // Plant Growth
   for (let x = 0; x < GRID_SIZE; x++) {
     for (let y = 0; y < GRID_SIZE; y++) {
-      if (maps.data[x][y].state >= 0 && random() < 4 / prices[maps.data[x][y].state][0] * (maps.data[x][y].state + 1)) {
-        maps.data[x][y].update();
-        maps.base[x][y] = color(maps.data[x][y].stages[maps.data[x][y].growth]);
+      if (maps.base[x][y].growth < 4 && random() < 10 / prices[maps.base[x][y].state][0]) {
+        maps.base[x][y].grow();
       }
     }
   }
@@ -272,8 +260,8 @@ function drawUI() {
   rect(0.5 * cellSize, 0.5 * cellSize, xOffset - cellSize, 5 * cellSize);
 
   // Plant Box
-  stroke(boxStroke[selectedSeed]);
-  fill(boxFill[selectedSeed]);
+  stroke(boxStroke[seed]);
+  fill(boxFill[seed]);
   rect(0.5 * cellSize, 6.5 * cellSize, 5 * cellSize, 5 * cellSize);
   rect(5.5 * cellSize, 6.5 * cellSize, xOffset - 6 * cellSize, 5 * cellSize);
   rect(0.5 * cellSize, 11.5 * cellSize, xOffset - cellSize, 20 * cellSize);
@@ -288,36 +276,22 @@ function drawUI() {
 
   // Plant Text
   textSize(3.75 * cellSize);
-  fill(textStroke[selectedSeed]);
-  text(char[selectedSeed], 1.5 * cellSize, 10.7 * cellSize);
-  fill(textFill[selectedSeed]);
-  text(char[selectedSeed], 1.3 * cellSize, 10.5 * cellSize);
+  fill(textStroke[seed]);
+  text(char[seed], 1.5 * cellSize, 10.7 * cellSize);
+  fill(textFill[seed]);
+  text(char[seed], 1.3 * cellSize, 10.5 * cellSize);
 
   textSize(2.75 * cellSize);
-  fill(textStroke[selectedSeed]);
-  text(name[selectedSeed], 6.7 * cellSize, 10.2 * cellSize);
-  fill(textFill[selectedSeed]);
-  text(name[selectedSeed], 6.5 * cellSize, 10 * cellSize);
+  fill(textStroke[seed]);
+  text(name[seed], 6.7 * cellSize, 10.2 * cellSize);
+  fill(textFill[seed]);
+  text(name[seed], 6.5 * cellSize, 10 * cellSize);
 
   textSize(2 * cellSize);
-  fill(textStroke[selectedSeed]);
-  text(desc[selectedSeed], 1.7 * cellSize, 14.45 * cellSize, xOffset - cellSize);
-  fill(textFill[selectedSeed]);
-  text(desc[selectedSeed], 1.5 * cellSize, 14.25 * cellSize, xOffset - cellSize);
-}
-
-class Plant {
-  constructor(state, stages) {
-    this.state = state;
-    this.stages = stages;
-    this.growth = 0;
-  }
-
-  update() {
-    if (this.growth < 4) {
-      this.growth++;
-    }
-  }
+  fill(textStroke[seed]);
+  text(desc[seed], 1.7 * cellSize, 14.45 * cellSize, xOffset - cellSize);
+  fill(textFill[seed]);
+  text(desc[seed], 1.5 * cellSize, 14.25 * cellSize, xOffset - cellSize);
 }
 
 class Player {
@@ -372,10 +346,51 @@ class Player {
 
 class Pot {
   constructor() {
-    this.hp = 3;
+    this.index = 4;
   }
 
-  used() {
-    this.hp--;
+  display() {
+    fill(252, 92, 71);
+  }
+}
+
+class Grid {
+  constructor(index) {
+    this.index = index;
+  }
+
+  display() {
+    // Portal
+    if (this.index === 0) {
+      fill(120, 168, 134);
+    }
+    // Floor
+    if (this.index === 1) {
+      fill(211, 212, 218)
+    }
+    // Wall
+    if (this.index === 2) {
+      fill(0);
+    }
+    // Dirt
+    if (this.index === 5) {
+      fill(117, 83, 66)
+    }
+  }
+}
+
+class Plant {
+  constructor(state) {
+    this.index = 3;
+    this.growth = 0;
+    this.state = state;
+  }
+
+  display() {
+    fill(plants[this.state][this.growth]);
+  }
+
+  grow() {
+    this.growth++;
   }
 }
