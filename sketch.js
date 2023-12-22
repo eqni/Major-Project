@@ -26,6 +26,8 @@ let seed = 0;
 let player;
 let start = false;
 let area = "base";
+let level;
+let newlevel;
 let theme = 0;
 let maps = {
   base: [],
@@ -40,6 +42,7 @@ let switchPlant;
 
 function preload() {
   font = loadFont("assets/Pixel Font.TTF");
+  level = loadStrings("assets/level.txt");
   switchPlant = loadSound("sounds/switch plant.mp3")
 }
 
@@ -54,6 +57,7 @@ function setup() {
 
   player = new Player(GRID_SIZE / 2, GRID_SIZE / 2, 100);
   document.addEventListener("contextmenu", event => event.preventDefault())
+  filterLevel();
 }
 
 function draw() {
@@ -71,11 +75,25 @@ function startGame() {
   player.wallet = 100;
 }
 
+function filterLevel() {
+  for (let i in level) {
+    for (let j = 0; j < i; j++) {
+      if (level[i][j] !== " " && level[i][j] !== undefined) {
+        newlevel += level[i][j];
+      }
+    }
+  }
+  for (let k = 0; k < 8; k++) {
+    newlevel[k] = "";
+  }
+  console.log(newlevel);
+}
+
 function createMap() {
   let baseMap = [];
   let shopMap = [];
   let mapData = [];
-
+  let index = 0;
   // Generates Both Game Maps + Data
   for (let x = 0; x < GRID_SIZE; x++) {
     baseMap.push([]);
@@ -85,47 +103,47 @@ function createMap() {
       baseMap[x].push([]);
       shopMap[x].push([]);
       mapData[x].push([]);
-
+      index = GRID_SIZE * x + y;
       // Base Map
-      if (y === 63 && x < 35 && x > 28) {
+      if (newlevel[index] === 0) {
         baseMap[x][y] = new Grid(0);
       }
-      else if (y === 63) {
+      else if (newlevel[index] === 2) {
         baseMap[x][y] = new Grid(2)
       }
-      else {
+      else if (newlevel[index] === 1) {
         baseMap[x][y] = new Grid(1);
       }
 
-      // Shop Map
-      if (y === 0 && x < 35 && x > 28) {
-        shopMap[x][y] = color(120, 168, 134);
-      }
-      else if (y === 0) {
-        shopMap[x][y] = color(0);
-      }
-      else if (x % 2 === 0) {
-        shopMap[x][y] = color(139, 69, 19);
-      }
-      else if (x % 2 === 1) {
-        shopMap[x][y] = color(159, 89, 39);
-      }
-      if (y === 56) {
-        shopMap[x][y] = color(0);
-        mapData[x][y] = -1
-      }
-      if (y === 60 && x % 8 < 3) {
-        shopMap[x][y] = color(random(245, 255), random(220, 240), random(0, 25));
-      }
-      else if (y === 57 || y === 63) {
-        shopMap[x][y] = color(random(35, 50));
-      }
-      else if (y > 57) {
-        shopMap[x][y] = color(random(95, 115));
-      }
-      if (y > 0 && y < 7 && x < 6) {
-        shopMap[x][y] = color(45, 186, 143);
-      }
+      // // Shop Map
+      // if (y === 0 && x < 35 && x > 28) {
+      //   shopMap[x][y] = color(120, 168, 134);
+      // }
+      // else if (y === 0) {
+      //   shopMap[x][y] = color(0);
+      // }
+      // else if (x % 2 === 0) {
+      //   shopMap[x][y] = color(139, 69, 19);
+      // }
+      // else if (x % 2 === 1) {
+      //   shopMap[x][y] = color(159, 89, 39);
+      // }
+      // if (y === 56) {
+      //   shopMap[x][y] = color(0);
+      //   mapData[x][y] = -1
+      // }
+      // if (y === 60 && x % 8 < 3) {
+      //   shopMap[x][y] = color(random(245, 255), random(220, 240), random(0, 25));
+      // }
+      // else if (y === 57 || y === 63) {
+      //   shopMap[x][y] = color(random(35, 50));
+      // }
+      // else if (y > 57) {
+      //   shopMap[x][y] = color(random(95, 115));
+      // }
+      // if (y > 0 && y < 7 && x < 6) {
+      //   shopMap[x][y] = color(45, 186, 143);
+      // }
     }
   }
 
