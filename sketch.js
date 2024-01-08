@@ -4,7 +4,7 @@
 // 11/21/2023
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////
-// Game: An Upstart Gardener, Grene, takes over his Aunt's store to begin his own produce empire!
+// Game: An Upstart Gardener, Grene, takes over his Aunt's store to begin his own produce empire.
 //
 // Instructions: WASD Movement. Mouse Click to plant seeds and harvest plants. Spacebar harvests
 // all plants. Plants cost money, but make back money when they are harvested. Arrow Keys Cycle
@@ -26,13 +26,11 @@ let seed = 0;
 let player;
 let start = false;
 let area = "base";
-let level;
-let newlevel;
-let theme = 0;
 let maps = {
   base: [],
+  txtBase: "",
   shop: [],
-  data: [],
+  txtShop: "",
 };
 
 // Sounds
@@ -42,13 +40,16 @@ let switchPlant;
 
 function preload() {
   font = loadFont("assets/Pixel Font.TTF");
-  level = loadStrings("assets/level.txt");
+  maps.txtBase = loadStrings("assets/Greenhouse.txt");
+  maps.txtShop = loadStrings("assets/Store.txt");
   switchPlant = loadSound("sounds/switch plant.mp3")
 }
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
   textFont(font);
+  maps.base = filterLevel(maps.txtBase);
+  maps.shop = filterLevel(maps.txtShop);
   background(0);
   createMap();
   yOffset = constrain((windowHeight - windowWidth) / 2, 0, windowHeight);
@@ -57,7 +58,6 @@ function setup() {
 
   player = new Player(GRID_SIZE / 2, GRID_SIZE / 2, 100);
   document.addEventListener("contextmenu", event => event.preventDefault())
-  filterLevel();
 }
 
 function draw() {
@@ -75,81 +75,40 @@ function startGame() {
   player.wallet = 100;
 }
 
-function filterLevel() {
+function filterLevel(level) {
+  let values = "0123456789";
+  let newLevel = "";
   for (let i in level) {
-    for (let j = 0; j < i; j++) {
-      if (level[i][j] !== " " && level[i][j] !== undefined) {
-        newlevel += level[i][j];
+    for (let j in level[i]) {
+      if (values.includes(level[i][j])) {
+        newLevel += level[i][j];
       }
     }
   }
-  for (let k = 0; k < 8; k++) {
-    newlevel[k] = "";
-  }
-  console.log(newlevel);
+  return newLevel;
 }
 
 function createMap() {
   let baseMap = [];
   let shopMap = [];
   let mapData = [];
-  let index = 0;
-  // Generates Both Game Maps + Data
+  // Generates Both Game Maps
   for (let x = 0; x < GRID_SIZE; x++) {
     baseMap.push([]);
     shopMap.push([]);
-    mapData.push([]);
     for (let y = 0; y < GRID_SIZE; y++) {
+      index = GRID_SIZE * y + x;
       baseMap[x].push([]);
       shopMap[x].push([]);
-      mapData[x].push([]);
-      index = GRID_SIZE * x + y;
-      // Base Map
-      if (newlevel[index] === 0) {
-        baseMap[x][y] = new Grid(0);
-      }
-      else if (newlevel[index] === 2) {
-        baseMap[x][y] = new Grid(2)
-      }
-      else if (newlevel[index] === 1) {
-        baseMap[x][y] = new Grid(1);
-      }
-
-      // // Shop Map
-      // if (y === 0 && x < 35 && x > 28) {
-      //   shopMap[x][y] = color(120, 168, 134);
-      // }
-      // else if (y === 0) {
-      //   shopMap[x][y] = color(0);
-      // }
-      // else if (x % 2 === 0) {
-      //   shopMap[x][y] = color(139, 69, 19);
-      // }
-      // else if (x % 2 === 1) {
-      //   shopMap[x][y] = color(159, 89, 39);
-      // }
-      // if (y === 56) {
-      //   shopMap[x][y] = color(0);
-      //   mapData[x][y] = -1
-      // }
-      // if (y === 60 && x % 8 < 3) {
-      //   shopMap[x][y] = color(random(245, 255), random(220, 240), random(0, 25));
-      // }
-      // else if (y === 57 || y === 63) {
-      //   shopMap[x][y] = color(random(35, 50));
-      // }
-      // else if (y > 57) {
-      //   shopMap[x][y] = color(random(95, 115));
-      // }
-      // if (y > 0 && y < 7 && x < 6) {
-      //   shopMap[x][y] = color(45, 186, 143);
-      // }
+      
+      // Maps
+      baseMap[x][y] = new Grid(floor(maps.base[index]), x, y);
+      shopMap[x][y] = new Grid(floor(maps.shop[index]), x, y);
     }
   }
 
   maps.base = baseMap;
   maps.shop = shopMap;
-  maps.data = mapData;
 }
 
 function mousePressed() {
@@ -202,7 +161,7 @@ function keyPressed() {
       for (let y = 0; y < GRID_SIZE; y++) {
         if (maps.base[x][y].growth === 4) {
           inventory[maps.base[x][y].state] += 1;
-          maps.base[x][y] = new Grid(5);
+          maps.base[x][y] = new Grid(5, x, y);
         }
       }
     }
@@ -234,7 +193,7 @@ function drawMap() {
         maps.base[x][y].display();
       }
       if (area === "shop") {
-        fill(maps.shop[x][y]); 
+        maps.shop[x][y].display(); 
       }
       rect(x * cellSize + xOffset, y * cellSize + yOffset, cellSize, cellSize);
     }
@@ -344,12 +303,12 @@ class Player {
 
     // Collision
     if (area === "base") {
-      this.x = constrain(this.x, 1, 63);
-      this.y = constrain(this.y, 1, 62);
+      this.x = constrain(this.x, 2, 62);
+      this.y = constrain(this.y, 2, 62);
     }
     if (area === "shop") {
-      this.x = constrain(this.x, 1, 63);
-      this.y = constrain(this.y, 2, 55);
+      this.x = constrain(this.x, 6, 62);
+      this.y = constrain(this.y, 2, 62);
     }
   }
 
@@ -373,18 +332,30 @@ class Pot {
 }
 
 class Grid {
-  constructor(index) {
+  constructor(index, x, y) {
     this.index = index;
+    this.x = x;
+    this.y = y;
   }
 
   display() {
-    // Portal
+    // Door
     if (this.index === 0) {
       fill(120, 168, 134);
     }
     // Floor
     if (this.index === 1) {
-      fill(211, 212, 218)
+      if (area === "shop") {
+        if (this.x % 2 === 0) {
+          fill(color(139, 69, 19));
+        }
+        else {
+          fill(color(159, 89, 39));
+        }
+      }
+      else {
+        fill(211, 212, 218);
+      }
     }
     // Wall
     if (this.index === 2) {
@@ -392,7 +363,23 @@ class Grid {
     }
     // Dirt
     if (this.index === 5) {
-      fill(117, 83, 66)
+      fill(117, 83, 66);
+    }
+    // Machine
+    if (this.index === 6) {
+      fill(122, 120, 114);
+    }
+    // Conveyer
+    if (this.index === 7) {
+      fill(193, 190, 184);
+    }
+    // Conveyer Border
+    if (this.index === 8) {
+      fill(29, 26, 31);
+    }
+    // Sell
+    if (this.index === 9) {
+      fill(218, 11, 10);
     }
   }
 }
