@@ -1,14 +1,18 @@
-//////////////////////////////////////////////////////////////////////////////////////////////////
-// Grene Horeh
-// Andrew Chen
-// 11/21/2023
-//////////////////////////////////////////////////////////////////////////////////////////////////
-// Game: An Upstart Gardener, Grene, takes over his Aunt's store to begin his own produce empire.
-//
-// Instructions: WASD Movement. Mouse Click to plant seeds and harvest plants. Spacebar harvests
-// all plants. Plants cost money, but make back money when they are harvested. Arrow Keys Cycle
-// through different plants.
-//////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////?
+//?
+//? Grene Horeh
+//? Andrew Chen
+//? 11/21/2023
+//?
+//////////////////////////////////////////////////////////////////////////////////////////////////?
+//?
+//? Game: An Upstart Gardener, Grene, takes over his Aunt's store to begin his own produce empire.
+//?
+//? Instructions: WASD Movement. Mouse Click to plant seeds and harvest plants. Spacebar harvests
+//? all plants. Plants cost money, but make back money when they are harvested. Arrow Keys Cycle
+//? through different plants.
+//?
+//////////////////////////////////////////////////////////////////////////////////////////////////?
 
 
 //* Variables
@@ -39,17 +43,21 @@ let maps = {
 };
 
 // Sounds
-let switchPlant;
+let txtAudio;
+let audios = [];
+let testsound;
 
-
+//eval maybe?
 //* Misc
 
 // Load Assets
 function preload() {
   font = loadFont("assets/Pixel Font.TTF");
-  maps.txtBase = loadStrings("assets/Greenhouse.txt");
-  maps.txtShop = loadStrings("assets/Store.txt");
-  switchPlant = loadSound("sounds/switch plant.mp3")
+  maps.txtBase = loadStrings("assets/Levels/Greenhouse.txt");
+  maps.txtShop = loadStrings("assets/Levels/Store.txt");
+  txtAudio = loadStrings("assets/Audios List.txt");
+  console.log(txtAudio);
+  testsound = loadSound("assets/Sounds/switch plant.mp3");
 }
 
 // Setup Game
@@ -66,6 +74,7 @@ function setup() {
   cellSize = min(windowHeight, windowWidth) / GRID_SIZE;
   player = new Player(GRID_SIZE / 2, GRID_SIZE / 2, 100);
   createMap();
+  testsound.play();
 }
 
 // Load Game
@@ -82,7 +91,14 @@ function draw() {
     player.update();
     player.display();
   }
+  // playSounds();
 }
+
+// function playSounds() {
+//   for (let i in audios) {
+//     audios[i].play();
+//   }
+// }
 
 // Organize Text
 function filterTxt(txt) {
