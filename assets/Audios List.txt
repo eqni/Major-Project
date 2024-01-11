@@ -1,2 +1,0 @@
-switch plant.mp3
-plant seed.mp3

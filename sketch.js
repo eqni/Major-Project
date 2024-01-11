@@ -43,11 +43,10 @@ let maps = {
 };
 
 // Sounds
-let txtAudio;
-let audios = [];
-let testsound;
+let menuInteraction;
+let bgMusic;
 
-//eval maybe?
+
 //* Misc
 
 // Load Assets
@@ -55,9 +54,10 @@ function preload() {
   font = loadFont("assets/Pixel Font.TTF");
   maps.txtBase = loadStrings("assets/Levels/Greenhouse.txt");
   maps.txtShop = loadStrings("assets/Levels/Store.txt");
-  txtAudio = loadStrings("assets/Audios List.txt");
-  console.log(txtAudio);
-  testsound = loadSound("assets/Sounds/switch plant.mp3");
+  menuInteraction = loadSound("assets/Sounds/menuInteraction.mp3");  
+  bgMusic = loadSound("assets/Sounds/bgmusic.mp3");
+  bgMusic.loop() = true;
+
 }
 
 // Setup Game
@@ -73,8 +73,8 @@ function setup() {
   maps.shop = filterTxt(maps.txtShop);
   cellSize = min(windowHeight, windowWidth) / GRID_SIZE;
   player = new Player(GRID_SIZE / 2, GRID_SIZE / 2, 100);
+  bgMusic.play();
   createMap();
-  testsound.play();
 }
 
 // Load Game
@@ -91,14 +91,7 @@ function draw() {
     player.update();
     player.display();
   }
-  // playSounds();
 }
-
-// function playSounds() {
-//   for (let i in audios) {
-//     audios[i].play();
-//   }
-// }
 
 // Organize Text
 function filterTxt(txt) {
@@ -174,6 +167,7 @@ function keyPressed() {
   // Sell Plants
   if (keyCode === 81 && player.canSell) {
     for (let i = 0; i < inventory.length; i++) {
+      menuInteraction.play();
       for (let j = 0; j < inventory[i]; j++) {
         player.wallet += prices[i][1];
       }
