@@ -28,7 +28,6 @@ let start;
 let seed = 0;
 
 // Arrays
-let pots = [];
 let inventory = [0, 0, 0];
 let prices = [[100, 250], [500, 1000], [2000, 5000]];
 let plants = [[[136, 82, 127], [159, 135, 175], [188, 231, 253], [169, 237, 190], [80, 132, 132]], [[54, 60, 60], [65, 193, 241], [52, 110, 129], [152, 251, 152], [27, 131, 102]], [[54, 60, 60], [71, 125, 139], [60, 155, 162], [105, 162, 151], [48, 105, 100]]];
@@ -55,7 +54,7 @@ function preload() {
   maps.txtBase = loadStrings("assets/Levels/Greenhouse.txt");
   maps.txtShop = loadStrings("assets/Levels/Store.txt");
   menuInteraction = loadSound("assets/Sounds/menuInteraction.mp3");  
-  bgMusic = loadSound("assets/Sounds/bgmusic.mp3");
+  bgMusic = loadSound("assets/Sounds/bgMusic.mp3");
   bgMusic.loop() = true;
 
 }
@@ -114,7 +113,7 @@ function mousePressed() {
   let x = floor((mouseX - xOffset) / cellSize);
   let y = floor((mouseY - yOffset) / cellSize);
 
-  // Planting and Harvesting
+  // Planting and Harvesting Crops
   if (mouseButton === LEFT) {
     if (maps.base[x][y].index === 3) {
       if (maps.base[x][y].growth === 4) {
@@ -128,24 +127,30 @@ function mousePressed() {
     }
   }
 
-  // Placing Pots
+  // Placing and Destroying Pots
   if (mouseButton === RIGHT) {
     let checkPot = [[x - 1, y], [x, y - 1], [x + 1, y], [x, y + 1], [x, y]];
-    let shareValue = false;
-    for (let i = 0; i < checkPot.length; i++) {
-      for (let j = 0; j < pots.length; j++) {
-        if (pots[j][0] === checkPot[i][0] && pots[j][1] === checkPot[i][1]) {
-          shareValue = true;
-        }
+    let placePot = true; 
+
+    // Destroy Pot
+    if (maps.base[x][y].index === 5) {
+      for (let i = 0; i < checkPot.length; i++) {
+        maps.base[checkPot[i][0]][checkPot[i][1]] = new Grid(1, checkPot[i][0], checkPot[i][1]);
       }
     }
-    if (shareValue === false) {
-      for (let i = 0; i < 4; i++) {
-        pots.push([checkPot[i][0], checkPot[i][1]]);
-        maps.base[checkPot[i][0]][checkPot[i][1]] = new Pot(4);
+    // Place Pot
+    else {
+      for (let i = 0; i < checkPot.length; i++) {
+        if (maps.base[checkPot[i][0]][checkPot[i][1]].index === 4 || maps.base[checkPot[i][0]][checkPot[i][1]].index === 2) {
+          placePot = false;
+        }
       }
-      pots.push[x, y];
-      maps.base[x][y].index = 5;
+      if (placePot === true) {
+        for (let i = 0; i < checkPot.length - 1; i++) {
+          maps.base[checkPot[i][0]][checkPot[i][1]] = new Pot(4);
+        }
+        maps.base[x][y].index = 5;
+      }
     }
   }
 }
@@ -179,7 +184,7 @@ function keyPressed() {
   if (keyCode === 70) {
     seed++;
     seed %= 3;
-    switchPlant.play();
+    menuInteraction.play();
   }
 }
 
