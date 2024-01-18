@@ -26,6 +26,10 @@ let font;
 let player;
 let start;
 let seed = 0;
+let tutorialStage = 0;
+let timer = 2000;
+let stampTime;
+let praisePlayer = false;
 
 // Arrays
 let inventory = [0, 0, 0];
@@ -56,7 +60,6 @@ function preload() {
   menuInteraction = loadSound("assets/Sounds/menuInteraction.mp3");  
   bgMusic = loadSound("assets/Sounds/bgMusic.mp3");
   bgMusic.loop() = true;
-
 }
 
 // Setup Game
@@ -87,6 +90,8 @@ function draw() {
   if (start) {
     drawMap();
     drawUI();
+    tutorial();
+
     player.update();
     player.display();
   }
@@ -94,7 +99,7 @@ function draw() {
 
 // Organize Text
 function filterTxt(txt) {
-  let key = "0123456789";
+  let key = "a0123456789";
   let newTxt = "";
   for (let i in txt) {
     for (let j in txt[i]) {
@@ -115,39 +120,47 @@ function mousePressed() {
 
   // Planting and Harvesting Crops
   if (mouseButton === LEFT) {
-    if (maps.base[x][y].index === 3) {
-      if (maps.base[x][y].growth === 4) {
-        inventory[maps.base[x][y].state] += 1;
-        maps.base[x][y] = new Grid(5);
-      }
-    }
     if (maps.base[x][y].index === 5 && player.wallet >= prices[seed][0]) {
       maps.base[x][y] = new Plant(seed);
       player.wallet -= prices[seed][0];
+    }
+    if (maps.base[x][y].index === 3) {
+      if (maps.base[x][y].growth === 4) {
+        inventory[maps.base[x][y].state] += 1;
+        maps.base[x][y] = new Grid(5, x, y);
+      }
     }
   }
 
   // Placing and Destroying Pots
   if (mouseButton === RIGHT) {
-    let checkPot = [[x - 1, y], [x, y - 1], [x + 1, y], [x, y + 1], [x, y]];
+    let newPot = [[x - 1, y], [x, y - 1], [x + 1, y], [x, y + 1], [x - 1, y - 1], [x - 1, y + 1], [x + 1, y - 1], [x + 1, y + 1], [x, y]];
     let placePot = true; 
 
     // Destroy Pot
     if (maps.base[x][y].index === 5) {
-      for (let i = 0; i < checkPot.length; i++) {
-        maps.base[checkPot[i][0]][checkPot[i][1]] = new Grid(1, checkPot[i][0], checkPot[i][1]);
+      let checkPot = 0;
+      for (let i = 0; i < newPot.length; i++) {
+        if (maps.base[newPot[i][0]][newPot[i][1]].index === 4) {
+          checkPot++;
+        }
+      }
+      if (checkPot === 8) {
+        for (let i = 0; i < newPot.length; i++) {
+          maps.base[newPot[i][0]][newPot[i][1]] = new Grid(1, newPot[i][0], newPot[i][1]);
+        }
       }
     }
     // Place Pot
     else {
-      for (let i = 0; i < checkPot.length; i++) {
-        if (maps.base[checkPot[i][0]][checkPot[i][1]].index === 4 || maps.base[checkPot[i][0]][checkPot[i][1]].index === 2) {
+      for (let i = 0; i < newPot.length; i++) {
+        if (maps.base[newPot[i][0]][newPot[i][1]].index === 4 || maps.base[newPot[i][0]][newPot[i][1]].index === 2) {
           placePot = false;
         }
       }
       if (placePot === true) {
-        for (let i = 0; i < checkPot.length - 1; i++) {
-          maps.base[checkPot[i][0]][checkPot[i][1]] = new Pot(4);
+        for (let i = 0; i < newPot.length - 1; i++) {
+          maps.base[newPot[i][0]][newPot[i][1]].index = 4;
         }
         maps.base[x][y].index = 5;
       }
@@ -188,6 +201,42 @@ function keyPressed() {
   }
 }
 
+// Tutorial
+function tutorial() {
+  stroke(0);
+  fill(255);
+  rect(64.5 * cellSize + xOffset, 11.5 * cellSize, xOffset - cellSize, 20 * cellSize);
+  noStroke();
+  text("Tutorial", 64.5 * cellSize + xOffset, 11.5 * cellSize);
+  fill(0);
+  textSize(1.5 * cellSize);
+  if (praisePlayer === true) {
+    fill(0, 255, 0);
+    text("Good!", 65.5 * cellSize + xOffset, 14 * cellSize);
+    if (timer < millis() - stampTime) {
+      praisePlayer = false;
+      console.log("asdfas");
+    }
+  }
+  else {
+    if (tutorialStage === 0) {
+      text("WASD to Move", 65.5 * cellSize + xOffset, 14 * cellSize);
+      if (keyCode === 87 || keyCode === 65 || keyCode === 83 || keyCode === 68) {
+        tutorialStage++;
+        praisePlayer = true;
+        stampTime = millis();
+      }
+    }
+    if (tutorialStage === 1) {
+      text("Now, you see that pot in the bottom left? Click on the dirt within it to plant a crop", 65.5 * cellSize + xOffset, 14 * cellSize, xOffset - 1.5 * cellSize);
+      if (player.wallet === 0) {
+        tutorialStage++;
+        praisePlayer = true;
+        stampTime = millis();
+      }
+    }
+  }
+}
 
 //* Display
 
@@ -202,7 +251,7 @@ function createMap() {
       index = GRID_SIZE * y + x;
       baseMap[x].push([]);
       shopMap[x].push([]);
-      
+
       baseMap[x][y] = new Grid(floor(maps.base[index]), x, y);
       shopMap[x][y] = new Grid(floor(maps.shop[index]), x, y);
     }
@@ -244,6 +293,7 @@ function drawUI() {
 
   // Inventory
   stroke(35);
+  textSize(2 * cellSize);
   fill(220);
   rect(0.5 * cellSize, 32.5 * cellSize, xOffset - cellSize, windowHeight - 33 * cellSize);
   for (let i = 0; i < 3; i++) {
@@ -348,16 +398,6 @@ class Player {
   }
 }
 
-class Pot {
-  constructor() {
-    this.index = 4;
-  }
-
-  display() {
-    fill(252, 92, 71);
-  }
-}
-
 class Grid {
   constructor(index, x, y) {
     this.index = index;
@@ -387,6 +427,10 @@ class Grid {
     // Wall
     if (this.index === 2) {
       fill(0);
+    }
+    // Pot
+    if (this.index === 4) {
+      fill(252, 92, 71);
     }
     // Dirt
     if (this.index === 5) {
