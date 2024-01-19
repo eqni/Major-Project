@@ -27,7 +27,7 @@ let player;
 let start;
 let seed = 0;
 let tutorialStage = 0;
-let timer = 2000;
+let timer = 1200;
 let stampTime;
 let praisePlayer = false;
 
@@ -90,7 +90,15 @@ function draw() {
   if (start) {
     drawMap();
     drawUI();
-    tutorial();
+
+    if (tutorialStage < 11) {
+      tutorial();
+    }
+    if (tutorialStage === 11) {
+      tutorialTransition();
+      fill(0);
+      rect(64.5 * cellSize + xOffset, 0, xOffset - cellSize, 100 * cellSize);
+    }
 
     player.update();
     player.display();
@@ -150,6 +158,10 @@ function mousePressed() {
           maps.base[newPot[i][0]][newPot[i][1]] = new Grid(1, newPot[i][0], newPot[i][1]);
         }
       }
+      // Tutorial Pot Destroying Check
+      if (tutorialStage === 9) {
+        tutorialTransition();
+      }
     }
     // Place Pot
     else {
@@ -164,6 +176,10 @@ function mousePressed() {
         }
         maps.base[x][y].index = 5;
       }
+    }
+    // Tutorial Pot Placing Check
+    if (tutorialStage === 8) {
+      tutorialTransition();
     }
   }
 }
@@ -212,30 +228,78 @@ function tutorial() {
   textSize(1.5 * cellSize);
   if (praisePlayer === true) {
     fill(0, 255, 0);
-    text("Good!", 65.5 * cellSize + xOffset, 14 * cellSize);
+    if (tutorialStage === 10) {
+      text("Now you know everything there is to know about the game. The tutorial will disappear shortly...", 65.5 * cellSize + xOffset, 14 * cellSize, xOffset - 1.5 * cellSize);
+      timer = 5000;
+    }
+    else {
+      text("Good!", 65.5 * cellSize + xOffset, 14 * cellSize);
+    }
     if (timer < millis() - stampTime) {
       praisePlayer = false;
-      console.log("asdfas");
     }
   }
   else {
     if (tutorialStage === 0) {
       text("WASD to Move", 65.5 * cellSize + xOffset, 14 * cellSize);
       if (keyCode === 87 || keyCode === 65 || keyCode === 83 || keyCode === 68) {
-        tutorialStage++;
-        praisePlayer = true;
-        stampTime = millis();
+        tutorialTransition()
       }
     }
-    if (tutorialStage === 1) {
+    else if (tutorialStage === 1) {
       text("Now, you see that pot in the bottom left? Click on the dirt within it to plant a crop", 65.5 * cellSize + xOffset, 14 * cellSize, xOffset - 1.5 * cellSize);
       if (player.wallet === 0) {
-        tutorialStage++;
-        praisePlayer = true;
-        stampTime = millis();
+        tutorialTransition()
       }
     }
+    else if (tutorialStage === 2) {
+      text("The plant has grown now. Click on it to harvest the crop.", 65.5 * cellSize + xOffset, 14 * cellSize, xOffset - 1.5 * cellSize);
+      if (inventory[0] === 1) {
+        tutorialTransition()
+      }
+    }
+    else if (tutorialStage === 3) {
+      text("Now that we harvested the crop, your inventory has filled up a little. Go through the door at the bottom to enter the shop.", 65.5 * cellSize + xOffset, 14 * cellSize, xOffset - 1.5 * cellSize);
+      if (maps.location === "shop") {
+        tutorialTransition()
+      }
+    }
+    else if (tutorialStage === 4) {
+      text("On the left is the shipping tube. Standing on the red square allows you to sell your goods for money. Go over to it and press Q to sell your crops.", 65.5 * cellSize + xOffset, 14 * cellSize, xOffset - 1.5 * cellSize);
+      if (inventory[0] === 0) {
+        tutorialTransition()
+      }
+    }
+    else if (tutorialStage === 5) {
+      text("The conveyer will ship your goods to a market later on. Anyhow, now that you have some money to spend. Let's go back and plant two seeds this time.", 65.5 * cellSize + xOffset, 14 * cellSize, xOffset - 1.5 * cellSize);
+      if (player.wallet === 50) {
+        tutorialTransition()
+      }
+    }
+    else if (tutorialStage === 6) {
+      text("Instead of manually clicking on plants to harvest them, press E to auto harvest all plants.", 65.5 * cellSize + xOffset, 14 * cellSize, xOffset - 1.5 * cellSize);
+      if (inventory[0] === 2) {
+        tutorialTransition()
+      }
+    }
+    else if (tutorialStage === 7) {
+      text("Now you're broke again. Return to the shop to sell your goods. To switch seeds, press F to cycle through your crops. Using your new money, grow and harvest a watermelon.", 65.5 * cellSize + xOffset, 14 * cellSize, xOffset - 1.5 * cellSize);
+      if (inventory[1] >= 1) {
+        tutorialTransition()
+      }
+    }
+    else if (tutorialStage === 8) {
+      text("Ever noticed that the dirt in your warehouse seems kind of little? Right click in an empty area to plant a pot.", 65.5 * cellSize + xOffset, 14 * cellSize, xOffset - 1.5 * cellSize);
+    }
+    else if (tutorialStage === 9) {
+      text("Pots can give you extra dirt to grow plants. By Right clicking the dirt in a pot, you can delete them. Go ahead and do that.", 65.5 * cellSize + xOffset, 14 * cellSize, xOffset - 1.5 * cellSize);
+    }
   }
+}
+
+function tutorialTransition() {
+  praisePlayer = true;
+  stampTime = millis();
 }
 
 //* Display
@@ -339,8 +403,12 @@ function drawUI() {
   textSize(2 * cellSize);
   fill(textStroke[seed]);
   text(desc[seed], 1.7 * cellSize, 14.45 * cellSize, xOffset - cellSize);
+  text("Cost: " + prices[seed][0], 1.7 * cellSize, 28.25 * cellSize);
+  text("Yield: " + prices[seed][1], 1.7 * cellSize, 30.25 * cellSize);
   fill(textFill[seed]);
   text(desc[seed], 1.5 * cellSize, 14.25 * cellSize, xOffset - cellSize);
+  text("Cost: " + prices[seed][0], 1.5 * cellSize, 28 * cellSize);
+  text("Yield: " + prices[seed][1], 1.5 * cellSize, 30 * cellSize);
 }
 
 
