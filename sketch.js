@@ -4,6 +4,14 @@
 //? Andrew Chen
 //? 11/21/2023 - 1/22/2024
 //?
+//?
+//? Extra for Experts:
+//? - Custom Font
+//? - Text Filtering
+//? - Standardized Grid Cells
+//? - Grid Surroundings Check
+//? - Mouse Click Modification
+//?
 //////////////////////////////////////////////////////////////////////////////////////////////////?
 //?
 //? Game: An Upstart Gardener takes over his Aunt's store to begin his own produce empire.
@@ -48,6 +56,9 @@ let maps = {
 // Sounds
 let menuInteraction;
 let bgMusic;
+let plantCrop;
+let sellCrops;
+let potInteraction;
 
 
 //* Misc
@@ -59,6 +70,11 @@ function preload() {
   maps.txtShop = loadStrings("assets/Levels/Store.txt");
   menuInteraction = loadSound("assets/Sounds/menuInteraction.mp3");  
   bgMusic = loadSound("assets/Sounds/bgMusic.mp3");
+  plantCrop = loadSound("assets/Sounds/plantCrop.mp3");  
+  sellCrops = loadSound("assets/Sounds/sellCrops.mp3");  
+  potInteraction = loadSound("assets/Sounds/potInteraction.mp3")
+
+
   bgMusic.loop() = true;
 }
 
@@ -76,6 +92,7 @@ function setup() {
   cellSize = min(windowHeight, windowWidth) / GRID_SIZE;
   player = new Player(GRID_SIZE / 2, GRID_SIZE / 2, 100);
   bgMusic.play();
+  bgMusic.setVolume(0.1);
   createMap();
 }
 
@@ -94,8 +111,7 @@ function draw() {
     if (tutorialStage < 11) {
       tutorial();
     }
-    if (tutorialStage === 11) {
-      tutorialTransition();
+    else {
       fill(0);
       rect(64.5 * cellSize + xOffset, 0, xOffset - cellSize, 100 * cellSize);
     }
@@ -105,7 +121,7 @@ function draw() {
   }
 }
 
-// Organize Text
+// Filter Text
 function filterTxt(txt) {
   let key = "a0123456789";
   let newTxt = "";
@@ -131,6 +147,8 @@ function mousePressed() {
     if (maps.base[x][y].index === 5 && player.wallet >= prices[seed][0]) {
       maps.base[x][y] = new Plant(seed);
       player.wallet -= prices[seed][0];
+      plantCrop.play();
+      plantCrop.setVolume(1, 1);
     }
     if (maps.base[x][y].index === 3) {
       if (maps.base[x][y].growth === 4) {
@@ -158,10 +176,12 @@ function mousePressed() {
           maps.base[newPot[i][0]][newPot[i][1]] = new Grid(1, newPot[i][0], newPot[i][1]);
         }
       }
+
       // Tutorial Pot Destroying Check
       if (tutorialStage === 9) {
         tutorialTransition();
       }
+      potInteraction.play();
     }
     // Place Pot
     else {
@@ -176,11 +196,13 @@ function mousePressed() {
         }
         maps.base[x][y].index = 5;
       }
+
+      // Tutorial Pot Placing Check
+      if (tutorialStage === 8) {
+        tutorialTransition();
+      }
     }
-    // Tutorial Pot Placing Check
-    if (tutorialStage === 8) {
-      tutorialTransition();
-    }
+    potInteraction.play();
   }
 }
 
@@ -201,12 +223,13 @@ function keyPressed() {
   // Sell Plants
   if (keyCode === 81 && player.canSell) {
     for (let i = 0; i < inventory.length; i++) {
-      menuInteraction.play();
       for (let j = 0; j < inventory[i]; j++) {
         player.wallet += prices[i][1];
       }
     }
     inventory = [0, 0, 0];
+    sellCrops.play();
+    sellCrops.setVolume(0.2);
   }
 
   // Changes Seed
@@ -215,30 +238,34 @@ function keyPressed() {
     seed %= 3;
     menuInteraction.play();
   }
+    
+  // Skip Tutorial
+  if (keyCode === 75) {
+    tutorialStage = 40;
+  }
+
 }
 
 // Tutorial
 function tutorial() {
+  // Tutorial Box
   stroke(0);
   fill(255);
-  rect(64.5 * cellSize + xOffset, 11.5 * cellSize, xOffset - cellSize, 20 * cellSize);
+  rect(64.5 * cellSize + xOffset, 11.5 * cellSize, xOffset - cellSize, 30 * cellSize);
+  rect(64.5 * cellSize + xOffset, 41.5 * cellSize, xOffset - cellSize, 4 * cellSize);
   noStroke();
-  text("Tutorial", 64.5 * cellSize + xOffset, 11.5 * cellSize);
+  text("Tutorial", 65 * cellSize + xOffset, 11.5 * cellSize);
   fill(0);
   textSize(1.5 * cellSize);
+  text("Press K to skip.", 65.5 * cellSize + xOffset, 44 * cellSize, xOffset - 2.5 * cellSize);
+
+  // Transition Text
   if (praisePlayer === true) {
     fill(0, 255, 0);
-    if (tutorialStage === 10) {
-      text("Now you know everything there is to know about the game. The tutorial will disappear shortly...", 65.5 * cellSize + xOffset, 14 * cellSize, xOffset - 1.5 * cellSize);
-      timer = 5000;
-    }
-    else {
-      text("Good!", 65.5 * cellSize + xOffset, 14 * cellSize);
-    }
-    if (timer < millis() - stampTime) {
-      praisePlayer = false;
-    }
+    text("Good!", 65.5 * cellSize + xOffset, 14 * cellSize);
   }
+
+  // Tutorial Text
   else {
     if (tutorialStage === 0) {
       text("WASD to Move", 65.5 * cellSize + xOffset, 14 * cellSize);
@@ -294,13 +321,28 @@ function tutorial() {
     else if (tutorialStage === 9) {
       text("Pots can give you extra dirt to grow plants. By Right clicking the dirt in a pot, you can delete them. Go ahead and do that.", 65.5 * cellSize + xOffset, 14 * cellSize, xOffset - 1.5 * cellSize);
     }
+    else if (tutorialStage === 10) {
+      text("Now, you know evrything there is to know. Earn $1000, and the tutorial will disappear.", 65.5 * cellSize + xOffset, 14 * cellSize, xOffset - 1.5 * cellSize);
+      if (player.wallet >= 1000) {
+        tutorialTransition()
+      }
+    }
   }
+
+  // Transition Duration
+  if (timer < millis() - stampTime) {
+    praisePlayer = false;
+  }
+
 }
 
+// Tutorial Transition
 function tutorialTransition() {
   praisePlayer = true;
   stampTime = millis();
+  tutorialStage++;
 }
+
 
 //* Display
 
@@ -400,7 +442,7 @@ function drawUI() {
   fill(textFill[seed]);
   text(name[seed], 6.5 * cellSize, 10 * cellSize);
 
-  textSize(2 * cellSize);
+  textSize(1.5 * cellSize);
   fill(textStroke[seed]);
   text(desc[seed], 1.7 * cellSize, 14.45 * cellSize, xOffset - cellSize);
   text("Cost: " + prices[seed][0], 1.7 * cellSize, 28.25 * cellSize);
@@ -414,12 +456,13 @@ function drawUI() {
 
 //* Classes
 
+// Controllable Character
 class Player {
   constructor(x, y) {
     this.x = x;
     this.y = y;
     this.wallet = 0;
-    let canSell = false;
+    this.canSell = false;
   }
 
   // Player Movement
@@ -466,6 +509,7 @@ class Player {
   }
 }
 
+// Grid Cells
 class Grid {
   constructor(index, x, y) {
     this.index = index;
@@ -473,6 +517,7 @@ class Grid {
     this.y = y;
   }
 
+  // Display Cells
   display() {
     // Door
     if (this.index === 0) {
@@ -523,6 +568,7 @@ class Grid {
   }
 }
 
+// Crops
 class Plant {
   constructor(state) {
     this.index = 3;
@@ -530,10 +576,12 @@ class Plant {
     this.state = state;
   }
 
+  // Display Plant
   display() {
     fill(plants[this.state][this.growth]);
   }
 
+  // Grow Plant
   grow() {
     this.growth++;
   }
