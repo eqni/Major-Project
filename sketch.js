@@ -1,12 +1,12 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////?
 //?
-//? Grene Horeh
+//? Green House Simulator
 //? Andrew Chen
-//? 11/21/2023
+//? 11/21/2023 - 1/22/2024
 //?
 //////////////////////////////////////////////////////////////////////////////////////////////////?
 //?
-//? Game: An Upstart Gardener, Grene, takes over his Aunt's store to begin his own produce empire.
+//? Game: An Upstart Gardener takes over his Aunt's store to begin his own produce empire.
 //?
 //? Instructions: WASD Movement. Mouse Click to plant seeds and harvest plants. Spacebar harvests
 //? all plants. Plants cost money, but make back money when they are harvested. Arrow Keys Cycle
